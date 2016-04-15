@@ -3,6 +3,7 @@ from thredds_crawler.crawl import Crawl
 import os
 import fnmatch
 import xarray as xr
+import json
 
 test_cases = '/Users/michaesm/Downloads/EnduranceFirstInClass_testsSuite-EnduranceFirstInClass_testsSuite.csv'
 database = '/Users/michaesm/Downloads/EnduranceFirstInClass_testsSuite-Endurance_Baseline_02_05_2016.c.csv'
@@ -10,7 +11,7 @@ url='http://opendap-devel.ooi.rutgers.edu:8090/thredds/catalog/first-in-class/Co
 tds = 'http://opendap-devel.ooi.rutgers.edu:8090/thredds/dodsC/'
 
 save_file = os.path.splitext(test_cases)[0] + '-scripted.csv'
-C = Crawl(url, select=['.*CE09.*ncml'])
+C = Crawl(url, select=['.*CE09.*nc'])
 
 
 def perform_test(test):
@@ -35,7 +36,7 @@ def perform_test(test):
 
 
 def get_file(refdes, stream, links):
-    wildcard = '*' + refdes + '*' + stream + '*.ncml'
+    wildcard = '*' + refdes + '*' + stream + '*.nc'
     new_list = [s for s in links if fnmatch.fnmatch(s, wildcard)]
 
     if not new_list:
@@ -106,6 +107,8 @@ for ref in ref_degs: # iterate through reference designators
                             df.loc[row.Index, 'Status'] = 'Blocked - Stream Unavailable'
                 else:
                     dataset_url = tds + fname
+                    print dataset_url
+                    # try:
                     with xr.open_dataset(dataset_url) as ds:
                         temp_df2 = df2.loc[(df2.ReferenceDesignator == ref) & (df2.StreamID == stream)]
                         ds_vars = ds.data_vars.keys()  # Stream file
@@ -134,11 +137,19 @@ for ref in ref_degs: # iterate through reference designators
                                     df.loc[row.Index, 'Status'] = "Fail"
                                 df.loc[row.Index, 'Comment'] = "Unmatch: " + str(unmatch)
                             elif test_num is 5: # 'One stream NetCDF file has no provenance errors.'
-                                df.loc[row.Index, 'Status'] = ""
-                                df.loc[row.Index, 'Comment'] = "User needs to check manually"
+                                # continue
+                                cp_dict = json.loads(ds['computed_provenance'].data[0])
+                                errors = cp_dict['errors']
+
+                                if not errors:
+                                    df.loc[row.Index, 'Status'] = "Pass"
+                                    df.loc[row.Index, 'Comment'] = "Errors: " + str(errors)
+                                else:
+                                    df.loc[row.Index, 'Status'] = "Fail"
+                                    df.loc[row.Index, 'Comment'] = "Errors: " + str(errors)
                             elif test_num is 6: # 'One raw data file passes the parser/playback test.'
                                 df.loc[row.Index, 'Status'] = ""
-                                df.loc[row.Index, 'Comment'] = "User needs to check manually"
+                                df.loc[row.Index, 'Comment'] = str(ds['l0_provenance_information'].data[0])
                             elif test_num is 7: # 'This stream passes the algorithm input/output check.'
                                 df.loc[row.Index, 'Status'] = ""
                                 df.loc[row.Index, 'Comment'] = "User needs to check manually"
@@ -159,4 +170,6 @@ for ref in ref_degs: # iterate through reference designators
                                     df.loc[row.Index, 'Comment'] = "User needs to check"
                             else:
                                 break
+                    # except TypeError:
+                    #     continue
 df.to_csv(save_file)
