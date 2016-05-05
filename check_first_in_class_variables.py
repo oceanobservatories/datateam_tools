@@ -109,7 +109,7 @@ for ref in ref_degs: # iterate through reference designators
                     dataset_url = tds + fname
                     print dataset_url
                     # try:
-                    with xr.open_dataset(dataset_url) as ds:
+                    with xr.open_dataset(dataset_url, engine='pydap', mask_and_scale=False) as ds:
                         temp_df2 = df2.loc[(df2.ReferenceDesignator == ref) & (df2.StreamID == stream)]
                         ds_vars = ds.data_vars.keys()  # Stream file
                         ds_vars.sort()
