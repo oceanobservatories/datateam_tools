@@ -13,13 +13,14 @@ from utils.parse_file import find_driver, ParticleHandler, log_timing, monkey_pa
 import urllib2
 import pickle
 
-csv_file = '~/Documents/dev/repos/najascutellatus/ingestion-csvs/CE09OSSM/CE09OSSM_R00001_ingest.csv'
-# csv_file = '~/Documents/dev/repos/najascutellatus/ingestion-csvs/CE01ISSM/CE01ISSM_R00001_ingest.csv'
-# csv_file = '~/Documents/dev/repos/najascutellatus/ingestion-csvs/GI02HYPM/GI02HYPM_D00001_ingest.csv'
-out_dir = '/Users/michaesm/Documents/parsed/'
+csv_file = '/Users/michaesm/Documents/dev/repos/ooi-integration/ingestion-csvs/CE07SHSM/CE07SHSM_D00004_ingest.csv'
+out_dir = '/Users/michaesm/Documents/dev/repos/ooi-integration/ingestion-csvs/CE07SHSM/'
 file_format = 'csv'
 base_path = '/Users/michaesm/Documents/dev/repos/ooi-data-review/check_ooi_nc' #base path of this toolbox
 dav_mount = '/Volumes/dav/'
+splitter = '/OMC/'
+# dav_mount = '/Volumes/dav/RS01SBPD/PD01A/'
+# splitter = '/PD01A/'
 
 
 def uframe_routes():
@@ -32,11 +33,13 @@ def uframe_routes():
     ingest_dict = pickle.load(fopen)
     return ingest_dict
 
+
 def make_dir(dir):
     try:  # Check if the save_dir exists already... if not, make it
         os.mkdir(out_dir)
     except OSError:
         pass
+
 
 def run(base_path, driver, files, fmt, out):
     """
@@ -57,19 +60,20 @@ def run(base_path, driver, files, fmt, out):
 
     particle_handler.write()
 
+make_dir(out_dir)
 ingest_dict = uframe_routes()
 
 data = []
 fname = os.path.basename(csv_file).split('.csv')[0]
 make_dir(out_dir)
-new_dir = out_dir + fname
+new_dir = os.path.join(out_dir, fname)
 make_dir(new_dir)
 
 df = pd.read_csv(csv_file)
 for row in df.itertuples():
     route = row.uframe_route
     try:
-        web_dir = os.path.join(dav_mount, row.filename_mask.split('/OMC/')[1])
+        web_dir = os.path.join(dav_mount, row.filename_mask.split(splitter)[1])
     except AttributeError:
         web_dir = 'None'
 
@@ -77,9 +81,8 @@ for row in df.itertuples():
     data_source = row.data_source
     print 'Ingestion row'
     if '#' in route:
-        route = route.strip('#')
-        if len(route) is 0:
-            route = 'N/A'
+        if len(route.strip('#')) is 0:
+            # route = 'N/A'
             driver = 'N/A'
         else:
             try:
@@ -91,7 +94,10 @@ for row in df.itertuples():
         print 'Reference Designator: %s, Data Source: %s' % (refdeg, data_source)
         print 'Route: %s, Driver: %s, file_mask: %s' % (route, 'N/A', web_dir)
         print 'Skipping above due to commented file'
-        data.append((refdeg, data_source, route, driver, web_dir, 0))
+        print ' '
+        data.append((refdeg, data_source, route, driver, web_dir, '#'))
+        continue
+    elif not route:
         continue
     else:
         try:
@@ -99,6 +105,7 @@ for row in df.itertuples():
         except KeyError:
             print 'No spring file/driver exists for the given route.'
             driver = 'Does not exist for given route.'
+            print ' '
             data.append((refdeg, data_source, route, driver, web_dir, 0))
             continue
 
@@ -107,8 +114,8 @@ for row in df.itertuples():
         print 'Parsing data'
 
     matches = glob.glob(web_dir)
-    if len(matches) > 10:
-        matches = matches[:5]
+    # if len(matches) > 10:
+    #     matches = matches[:5]
 
     out_rd = os.path.join(new_dir, refdeg); make_dir(out_rd)
 

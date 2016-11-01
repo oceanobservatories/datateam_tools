@@ -7,7 +7,6 @@ imagesize==0.7.0
 Jinja2==2.8
 lxml==3.6.0
 MarkupSafe==0.23
-natgrid==0.2.1
 numpy==1.11.0
 pandas==0.18.0
 Paste==2.0.3
