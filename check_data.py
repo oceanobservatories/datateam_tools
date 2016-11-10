@@ -86,60 +86,60 @@ def main(url):
 
     for n in c.datasets:
         ncml_url = os.path.join(tds_url, n.id)
-        ds = xr.open_dataset(ncml_url, mask_and_scale=False)
-        deployment = np.unique(ds['deployment'].data)[0]
-        variables = ds.data_vars.keys()
-        variables = eliminate_common_variables(variables)
-        variables = [x for x in variables if not 'qc' in x] # remove qc variables, because we don't care about them
-        ref_des = '{}-{}-{}'.format(ds.subsite, ds.node,ds.sensor)
-        ref_des_dict = get_parameter_list(ref_des)
+        with xr.open_dataset(ncml_url, mask_and_scale=False) as ds:
+            deployment = np.unique(ds['deployment'].data)[0]
+            variables = ds.data_vars.keys()
+            variables = eliminate_common_variables(variables)
+            variables = [x for x in variables if not 'qc' in x] # remove qc variables, because we don't care about them
+            ref_des = '{}-{}-{}'.format(ds.subsite, ds.node,ds.sensor)
+            ref_des_dict = get_parameter_list(ref_des)
 
-        # Gap test. Get a list of gaps
-        gap_list = test_gaps(ds['time'].data)
+            # Gap test. Get a list of gaps
+            gap_list = test_gaps(ds['time'].data)
 
-        for v in variables:
-            var_data = ds[v].data
-            print v
-            # Availability test
-            if v in ref_des_dict[ds.stream]:
-                available = True
-            else:
-                available = False
+            for v in variables:
+                var_data = ds[v].data
+                print v
+                # Availability test
+                if v in ref_des_dict[ds.stream]:
+                    available = True
+                else:
+                    available = False
 
-            # Global range test
-            [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
-            try:
-                min = np.nanmin(var_data)
-                max = np.nanmax(var_data)
-            except TypeError:
-                min = 'n/a'
-                max = 'n/a'
+                # Global range test
+                [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
+                try:
+                    min = np.nanmin(var_data)
+                    max = np.nanmax(var_data)
+                except TypeError:
+                    min = 'n/a'
+                    max = 'n/a'
 
-            if g_min is not None:
-                if min > g_min:
-                    if max < g_max:
-                        gr_result = True
+                if g_min is not None:
+                    if min > g_min:
+                        if max < g_max:
+                            gr_result = True
+                        else:
+                            gr_result = False
                     else:
                         gr_result = False
                 else:
-                    gr_result = False
-            else:
-                gr_result = 'None'
+                    gr_result = 'None'
 
-            # Fill Value test
-            fill_test = np.all(var_data == ds[v]._FillValue)
+                # Fill Value test
+                fill_test = np.all(var_data == ds[v]._FillValue)
 
-            try:
-                # NaN test. Make sure the parameter is not all NaNs
-                nan_test = np.all(np.isnan(var_data));
-            except TypeError:
-                nan_test = 'None'
+                try:
+                    # NaN test. Make sure the parameter is not all NaNs
+                    nan_test = np.all(np.isnan(var_data));
+                except TypeError:
+                    nan_test = 'None'
 
-            data.append((ref_des, ds.stream, deployment, v, available, gr_result, [g_min, min], [g_max, max], fill_test,
-                         ds[v]._FillValue, nan_test, gap_list))
-    df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment', 'variable', 'availability', 'global_range_test',
-                                     'min[global, data]', 'max[global, data]', 'fill_test', 'fill_value', 'not_nan', 'gaps'])
-    df.to_csv('/Users/michaesm/Documents/test.csv', index=False)
+                data.append((ref_des, ds.stream, deployment, v, available, gr_result, [g_min, min], [g_max, max], fill_test,
+                             ds[v]._FillValue, nan_test, gap_list))
+        df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment', 'variable', 'availability', 'global_range_test',
+                                         'min[global, data]', 'max[global, data]', 'fill_test', 'fill_value', 'not_nan', 'gaps'])
+        df.to_csv('/Users/michaesm/Documents/test.csv', index=False)
 
 if __name__ == '__main__':
     url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/michaesm/20161028T134128-CE09OSSM-RID27-04-DOSTAD000-recovered_host-dosta_abcdjm_dcl_instrument_recovered/catalog.xml'
