@@ -5,6 +5,7 @@ import xarray as xr
 import pandas as pd
 import re
 import numpy as np
+import datetime as dt
 
 
 def test_gaps(time):
@@ -63,23 +64,27 @@ def get_global_ranges(platform, node, sensor, variable):
 
     r = requests.get(url)
 
-    # if r.status_code is 200:
-    values = pd.io.json.json_normalize(r.json())
-    t1 = values[values['qcParameterPK.streamParameter'] == variable]
-    if not t1.empty:
-        t2 = t1[t1['qcParameterPK.qcId'] == 'dataqc_globalrangetest_minmax']
-        if not t2.empty:
-            local_min = float(t2[t2['qcParameterPK.parameter'] == 'dat_min'].iloc[0]['value'])
-            local_max = float(t2[t2['qcParameterPK.parameter'] == 'dat_max'].iloc[0]['value'])
+    if r.status_code is 200:
+        if r.json(): # If r.json is not empty
+            values = pd.io.json.json_normalize(r.json())
+            t1 = values[values['qcParameterPK.streamParameter'] == variable]
+            if not t1.empty:
+                t2 = t1[t1['qcParameterPK.qcId'] == 'dataqc_globalrangetest_minmax']
+                if not t2.empty:
+                    local_min = float(t2[t2['qcParameterPK.parameter'] == 'dat_min'].iloc[0]['value'])
+                    local_max = float(t2[t2['qcParameterPK.parameter'] == 'dat_max'].iloc[0]['value'])
+                else:
+                    local_min = None
+                    local_max = None
+            else:
+                local_min = None
+                local_max = None
         else:
             local_min = None
             local_max = None
-    else:
-        local_min = None
-        local_max = None
     return [local_min, local_max]
 
-def main(url):
+def main(url, save_dir):
     tds_url = 'http://opendap.oceanobservatories.org/thredds/dodsC'
     c = Crawl(url, select=[".*ncml"])
     data = []
@@ -139,8 +144,9 @@ def main(url):
                              ds[v]._FillValue, nan_test, gap_list))
         df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment', 'variable', 'availability', 'global_range_test',
                                          'min[global, data]', 'max[global, data]', 'fill_test', 'fill_value', 'not_nan', 'gaps'])
-        df.to_csv('/Users/michaesm/Documents/test.csv', index=False)
+        df.to_csv(os.path.join(save_dir, '{}-{}-{}_RIC_{}.csv'.format(ds.subsite, ds.node, ds.sensor, dt.datetime.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
 
 if __name__ == '__main__':
-    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/michaesm/20161028T134128-CE09OSSM-RID27-04-DOSTAD000-recovered_host-dosta_abcdjm_dcl_instrument_recovered/catalog.xml'
-    main(url)
+    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20161104T213423-RS01SUM2-MJ01B-12-ADCPSK101-streamed-adcp_velocity_beam/catalog.xml'
+    save_dir = '/Users/michaesm/Documents/'
+    main(url, save_dir)
