@@ -7,7 +7,6 @@ import re
 import numpy as np
 import datetime as dt
 
-
 def test_gaps(time):
     gap_list = []
     df = pd.DataFrame(data=time, columns=['time'])
@@ -59,10 +58,12 @@ def compare_lists(list1, list2):
     return match, unmatch
 
 
-def get_global_ranges(platform, node, sensor, variable):
-    url = 'http://ooiufs01.ooi.rutgers.edu:12578/qcparameters/inv/{}/{}/{}/'.format(platform, node, sensor)
+def get_global_ranges(platform, node, sensor, variable, username, token):
+    port = '12578'
+    url_str = '{}/qcparameters/inv/{}/{}/{}/'.format(port, platform, node, sensor)
+    url = 'https://ooinet.oceanobservatories.org/api/m2m/{}'.format(url_str)
 
-    r = requests.get(url)
+    r = requests.get(url, auth=(username, token),verify=False)
 
     if r.status_code is 200:
         if r.json(): # If r.json is not empty
@@ -84,7 +85,7 @@ def get_global_ranges(platform, node, sensor, variable):
             local_max = None
     return [local_min, local_max]
 
-def main(url, save_dir):
+def main(url, save_dir, username, token):
     tds_url = 'http://opendap.oceanobservatories.org/thredds/dodsC'
     c = Crawl(url, select=[".*ncml"])
     data = []
@@ -112,7 +113,7 @@ def main(url, save_dir):
                     available = False
 
                 # Global range test
-                [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
+                [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v, username, token)
                 try:
                     min = np.nanmin(var_data)
                     max = np.nanmax(var_data)
@@ -143,10 +144,12 @@ def main(url, save_dir):
                 data.append((ref_des, ds.stream, deployment, v, available, gr_result, [g_min, min], [g_max, max], fill_test,
                              ds[v]._FillValue, nan_test, gap_list))
         df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment', 'variable', 'availability', 'global_range_test',
-                                         'min[global, data]', 'max[global, data]', 'fill_test', 'fill_value', 'not_nan', 'gaps'])
+                                         'min[global, data]', 'max[global, data]', 'fill_test', 'fill_value', 'nans', 'gaps'])
         df.to_csv(os.path.join(save_dir, '{}-{}-{}_RIC_{}.csv'.format(ds.subsite, ds.node, ds.sensor, dt.datetime.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
 
 if __name__ == '__main__':
-    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20161104T213423-RS01SUM2-MJ01B-12-ADCPSK101-streamed-adcp_velocity_beam/catalog.xml'
-    save_dir = '/Users/michaesm/Documents/'
-    main(url, save_dir)
+    username = 'OOIAPI-9N9UMLHV9W5GOP'
+    token = 'SJN6HXHH116OZ8'
+    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20170104T200503-RS03AXBS-MJ03A-06-PRESTA301-streamed-prest_real_time/catalog.xml'
+    save_dir = '/Users/knuth/Desktop/'
+    main(url, save_dir, username, token)
