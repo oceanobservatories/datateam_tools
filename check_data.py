@@ -251,7 +251,7 @@ def main(url, save_dir):
                     else:
                         gr_result = False
                 else:
-                    gr_result = 'N/A'
+                    gr_result = None
 
                 # Fill Value test
                 fill_test = np.all(var_data == ds[v]._FillValue)
@@ -292,7 +292,7 @@ def main(url, save_dir):
                 else:
                     data.append((ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
                                  v, available, gr_result, [g_min, min], [g_max, max], fill_test, ds[v]._FillValue,
-                                 nan_test, gap_list, 'N/A', 'N/A', ['N/A']))
+                                 nan_test, gap_list, 'N/A', 'N/A', 'N/A'))
 
 
     df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment',
