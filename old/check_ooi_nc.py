@@ -1,11 +1,7 @@
 #! /usr/bin/env python
-import os
 import xarray as xr
 import pandas as pd
 import re
-import fnmatch
-# import click as click
-
 from thredds_crawler.crawl import Crawl
 fmt = '%Y.%m.%dT%H.%M.00'
 

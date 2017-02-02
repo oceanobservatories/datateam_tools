@@ -13,10 +13,10 @@ from utils.parse_file import find_driver, ParticleHandler, log_timing, monkey_pa
 import urllib2
 import pickle
 
-csv_file = '/Users/michaesm/Documents/dev/repos/ooi-integration/ingestion-csvs/CE07SHSM/CE07SHSM_D00004_ingest.csv'
-out_dir = '/Users/michaesm/Documents/dev/repos/ooi-integration/ingestion-csvs/CE07SHSM/'
+csv_file = '/Users/mikesmith/Documents/git/ooi-integration/ingestion-csvs/CE05MOAS-GL311/CE05MOAS-GL311_D00003_ingest.csv'
+out_dir = '/Users/mikesmith/Documents/git/ooi-integration/ingestion-csvs/CE05MOAS-GL311/'
 file_format = 'csv'
-base_path = '/Users/michaesm/Documents/dev/repos/ooi-data-review/check_ooi_nc' #base path of this toolbox
+base_path = '/Users/mikesmith/Documents/git/ooi-data-review/check_ooi_nc' #base path of this toolbox
 dav_mount = '/Volumes/dav/'
 splitter = '/OMC/'
 # dav_mount = '/Volumes/dav/RS01SBPD/PD01A/'
@@ -114,8 +114,8 @@ for row in df.itertuples():
         print 'Parsing data'
 
     matches = glob.glob(web_dir)
-    # if len(matches) > 10:
-    #     matches = matches[:5]
+    if len(matches) > 10:
+        matches = matches[:5]
 
     out_rd = os.path.join(new_dir, refdeg); make_dir(out_rd)
 
