@@ -175,11 +175,13 @@ def parse_qc(ds):
 def main(url, save_dir):
     tds_url = 'http://opendap.oceanobservatories.org/thredds/dodsC'
     c = Crawl(url, select=[".*ncml"], debug=True)
-    data = []
+    
 
     for n in c.datasets:
         ncml_url = os.path.join(tds_url, n.id)
+        print ncml_url
         with xr.open_dataset(ncml_url, mask_and_scale=False) as ds:
+            data = []
             qc_df = parse_qc(ds)
             qc_vars = [x for x in qc_df.keys() if not 'test' in x]
             qc_df = qc_df.reset_index()
@@ -283,7 +285,11 @@ def main(url, save_dir):
                         gr_result = None
 
                     # Fill Value test
-                    fill_test = np.all(var_data == ds[v]._FillValue)
+                    try:
+                        fill_test = np.all(var_data == ds[v]._FillValue)
+                    except AttributeError as e:
+                        print e
+                        continue
 
                     try:
                         # NaN test. Make sure the parameter is not all NaNs
@@ -321,13 +327,13 @@ def main(url, save_dir):
                                      v, available, gr_result, [g_min, min], [g_max, max], fill_test, ds[v]._FillValue,
                                      nan_test, gap_list, [], [], []))
 
-    df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment',
+            df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment',
                                      'start', 'stop', 'distance_from_deploy_<=.5km',
                                      'time_unique', 'variable', 'availability',
                                      'global_range_test', 'min', 'max',
                                      'fill_test', 'fill_value', 'all_nans',
                                      'gaps', 'global_range', 'stuck_value', 'spike_test'])
-    df.to_csv(os.path.join(save_dir, '{}-{}-{}_RIC_{}.csv'.format(ds.subsite, ds.node, ds.sensor, dt.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
+            df.to_csv(os.path.join(save_dir, '{}-{}-{}_RIC_{}.csv'.format(ds.subsite, ds.node, ds.sensor, dt.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
