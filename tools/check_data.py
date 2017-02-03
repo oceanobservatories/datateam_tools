@@ -333,7 +333,7 @@ def main(url, save_dir):
                                      'global_range_test', 'min', 'max',
                                      'fill_test', 'fill_value', 'all_nans',
                                      'gaps', 'global_range', 'stuck_value', 'spike_test'])
-            df.to_csv(os.path.join(save_dir, '{}-{}-{}_RIC_{}.csv'.format(ds.subsite, ds.node, ds.sensor, dt.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
+            df.to_csv(os.path.join(save_dir, '{}-{}-{}-{}-deployement_{}_current_time_{}.csv'.format(ds.subsite, ds.node, ds.sensor, ds.stream, deployment, dt.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
