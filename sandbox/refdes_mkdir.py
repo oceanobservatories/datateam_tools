@@ -1,8 +1,8 @@
 import os
 import csv
 
-out = '/output/directory'
-list_of_refdes = 'reference_designators.csv'
+out = '/Users/knuth/Documents/ooi/data/cruisedata'
+list_of_refdes = '/Users/knuth/Desktop/stream_list_20170130.csv'
 
 
 def create_dir(new_dir):
@@ -26,6 +26,7 @@ with open(list_of_refdes, 'rb') as targets:
 		site = str(line[0:8])
 		node = str(line[9:14])
 		sensor = str(line[15:])
-		new_dir = array + '/' + site + '/' + node + '/' + sensor
+		env_qc_data = 'env_qc_data'
+		new_dir = array + '/' + site + '/' + node + '/' + sensor + '/' + env_qc_data
 		save_dir = os.path.join(out,new_dir)
 		create_dir(save_dir)
