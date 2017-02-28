@@ -25,7 +25,8 @@ import numpy as np
 from datetime import datetime as dt
 from haversine import haversine as distance
 import logging
-import time
+# import time
+import glob
 
 t_now = dt.now().strftime('%Y%m%d_%H%M00')
 logging.basicConfig(filename='check_data_{}.log'.format(t_now), level=logging.DEBUG)
@@ -36,8 +37,8 @@ def test_gaps(df):
     df['diff'] = df['time'].diff()
     index = df['diff'][df['diff'] > pd.Timedelta(days=1)].index.tolist()
     for i in index:
-        gap_list.append([pd.to_datetime(str(time[i-1])).strftime('%Y-%m-%d %H:%M:%S'),
-                         pd.to_datetime(str(time[i])).strftime('%Y-%m-%d %H:%M:%S')])
+        gap_list.append([pd.to_datetime(str(df['time'][i-1])).strftime('%Y-%m-%d %H:%M:%S'),
+                         pd.to_datetime(str(df['time'][i])).strftime('%Y-%m-%d %H:%M:%S')])
     return gap_list
 
 
@@ -104,7 +105,7 @@ def get_global_ranges(platform, node, sensor, variable, api_user=None, api_token
         r = requests.get(url, auth=(api_user, api_token), verify=False)
 
     if r.status_code is 200:
-        if r.json(): # If r.json is not empty
+        if r.json():  # If r.json is not empty
             values = pd.io.json.json_normalize(r.json())
             t1 = values[values['qcParameterPK.streamParameter'] == variable]
             if not t1.empty:
@@ -159,12 +160,25 @@ def parse_qc(ds):
 
 
 def main(url, save_dir):
-    if url.endswith('.xml'):
-        tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
-        c = Crawl(url, select=[".*ncml"])
-        datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
-    elif url.endswith('.nc') or url.endswith('.ncml'):
-        datasets = [url]
+    if type(url) is str:
+        if url.endswith('.html'):
+            url = url.replace('.html', '.xml')
+            tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
+            c = Crawl(url, select=[".*ncml"])
+            datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
+        elif url.endswith('.xml'):
+            tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
+            c = Crawl(url, select=[".*ncml"])
+            datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
+        elif url.endswith('.nc') or url.endswith('.ncml'):
+            datasets = [url]
+        elif os.path.exists(url):
+            datasets = glob.glob(url + '/*.nc')
+        else:
+            print 'Unrecognized input. Input must be a string of the file location(s) or list of file(s)'
+    elif type(url) is list:
+        datasets = url
+
     data = []
     for dataset in datasets:
         logging.info('Processing {}'.format(str(dataset)))
@@ -270,7 +284,7 @@ def main(url, save_dir):
                                 qc_df[group_var] = qc_df[var].diff().cumsum().fillna(0)
                                 tdf = qc_df.groupby([group_var, var])['time'].agg(['first', 'last'])
                                 tdf = tdf.reset_index().drop([group_var], axis=1)
-                                tdf = tdf.loc[tdf[var] == False].drop(var, axis=1)
+                                tdf = tdf.loc[tdf[var] ==  False].drop(var, axis=1)
                                 tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
                                 tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
                                 if tdf.empty:
@@ -304,6 +318,8 @@ if __name__ == '__main__':
     # change pandas display width to view longer dataframes
     desired_width = 320
     pd.set_option('display.width', desired_width)
-    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20170123T165201-RS03AXBS-MJ03A-06-PRESTA301-streamed-prest_real_time/catalog.xml'
+    # url = '/Users/mikesmith/Downloads/deployment0001_GI01SUMO-RID16-03-CTDBPF000-recovered_host-ctdbp_cdef_dcl_instrument_recovered_20140910T190030.189000-20140929T080230.972000.nc'
     save_dir = '/Users/mikesmith/Documents/'
+    url = '/Volumes/ooi/array/CE/CE02SHBP/LJ01D/06-CTDBPN106/data/deployment0002_CE02SHBP-LJ01D-06-CTDBPN106-streamed-ctdbp_no_sample_20160411T000000.207994-20160502T060933.583375.nc'
+    # save_dir = '//ooi'
     main(url, save_dir)
