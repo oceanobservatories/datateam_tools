@@ -1,7 +1,7 @@
 import os
 import csv
 
-out = '/Users/knuth/Documents/ooi/data/cruisedata'
+out = '/Volumes/ooi/test'
 list_of_refdes = '/Users/knuth/Desktop/stream_list_20170130.csv'
 
 
@@ -27,6 +27,13 @@ with open(list_of_refdes, 'rb') as targets:
 		node = str(line[9:14])
 		sensor = str(line[15:])
 		env_qc_data = 'env_qc_data'
-		new_dir = array + '/' + site + '/' + node + '/' + sensor + '/' + env_qc_data
+		plots = 'plots'
+		data = 'data'
+		qc_script_output = 'qc_script_output'
+		new_dir = array + '/' + site + '/' + node + '/' + sensor + '/' + qc_script_output
 		save_dir = os.path.join(out,new_dir)
 		create_dir(save_dir)
+
+
+# rsync -r /Users/knuth/Documents/ooi/data/array .
+# scp -r knuth@arctic:/www/home/kerfoot/public_html/OOI/ooiufs01-sensors-timeline/* /Users/knuth/Desktop/test
