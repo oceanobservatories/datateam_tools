@@ -25,11 +25,17 @@ import numpy as np
 from datetime import datetime as dt
 from haversine import haversine as distance
 import logging
-# import time
 import glob
 
 t_now = dt.now().strftime('%Y%m%d_%H%M00')
 logging.basicConfig(filename='check_data_{}.log'.format(t_now), level=logging.DEBUG)
+
+
+def reject_outliers(data, m=3):
+    # function to reject outliers beyond 3 standard deviations of the mean.
+    # data: numpy array containing data
+    # m: the number of standard deviations from the mean. Default: 3
+    return abs(data - np.nanmean(data)) < m * np.nanstd(data)
 
 
 def test_gaps(df):
@@ -114,14 +120,14 @@ def get_global_ranges(platform, node, sensor, variable, api_user=None, api_token
                     local_min = float(t2[t2['qcParameterPK.parameter'] == 'dat_min'].iloc[0]['value'])
                     local_max = float(t2[t2['qcParameterPK.parameter'] == 'dat_max'].iloc[0]['value'])
                 else:
-                    local_min = 'N/A'
-                    local_max = 'N/A'
+                    local_min = None
+                    local_max = None
             else:
-                local_min = 'N/A'
-                local_max = 'N/A'
+                local_min = None
+                local_max = None
         else:
-            local_min = 'N/A'
-            local_max = 'N/A'
+            local_min = None
+            local_max = None
     return [local_min, local_max]
 
 
@@ -210,8 +216,8 @@ def main(url, save_dir):
                 data_start = ds.time_coverage_start
                 data_stop = ds.time_coverage_end
 
-                start_test = [deploy_start, data_start]
-                stop_test = [deploy_stop, data_stop]
+                start_test = [str(deploy_start), str(data_start)]
+                stop_test = [str(deploy_stop), str(data_stop)]
 
                 # Deployment Distance
                 data_lat = np.unique(ds['lat'])[0]
@@ -233,101 +239,114 @@ def main(url, save_dir):
                     time_test = False
 
                 for v in variables:
-                    var_data = ds[v].data
+                    print v
                     # Availability test
                     if v in ref_des_dict[ds.stream]:
                         available = True
                     else:
                         available = False
-                    if ds[v].dtype == np.dtype('S64') or ds[v].dtype == np.dtype('datetime64[ns]'): # this will skip most engineering/system variables because they are strings
+
+                    if ds[v].dtype == np.dtype('S64') or ds[v].dtype == np.dtype('datetime64[ns]') or 'time' in v: # this will skip most engineering/system variables because they are strings
+                        # ['ref_des', 'stream', 'deployment', 'start', 'stop', 'distance_from_deploy_<=.5km',
+                        # 'time_unique', 'variable', 'availability', 'all_nans', 'global_range_test', 'min', 'max',
+                        # 'fill_test', 'fill_value',  'gaps', 'global_range', 'stuck_value', 'spike_test'])
                         data.append((ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
-                                     v, available, [], [], [], [], [],
-                                     [], gap_list, [], [], []))
+                                     v, available, None, None, None, None, None, None, None, None, None, None))
                         continue
                     else:
-                        print v
-                        # Global range test
-                        [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
-                        try:
-                            min = np.nanmin(var_data)
-                            max = np.nanmax(var_data)
-                        except TypeError:
-                            min = None
-                            max = None
+                        var_data = ds[v].data
 
-                        if g_min is not None:
-                            if min >= g_min:
-                                if max <= g_max:
-                                    gr_result = True
+                        # NaN test. Make sure the parameter is not all NaNs
+                        nan_test = np.all(np.isnan(var_data))
+                        if not nan_test or available is False:
+                            # Global range test
+                            [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
+                            try:
+                                ind = reject_outliers(var_data, 3)
+                                min = np.nanmin(var_data[ind])
+                                max = np.nanmax(var_data[ind])
+                            except TypeError:
+                                min = None
+                                max = None
+
+                            if g_min is not None:
+                                if min >= g_min:
+                                    if max <= g_max:
+                                        gr_result = True
+                                    else:
+                                        gr_result = False
                                 else:
                                     gr_result = False
                             else:
-                                gr_result = False
-                        else:
-                            gr_result = None
+                                gr_result = None
 
-                        # Fill Value test
-                        try:
-                            fill_value = ds[v]._FillValue
-                        except AttributeError:
-                            fill_value = None
+                            # Fill Value test
+                            try:
+                                fill_value = ds[v]._FillValue
+                                fill_test = np.any(var_data == ds[v]._FillValue)
+                            except AttributeError:
+                                fill_value = 'n/a'
+                                fill_test = 'n/a'
 
-                        if fill_value is not None:
-                            fill_test = np.all(var_data == ds[v]._FillValue)
-                        else:
-                            fill_test = None
 
-                        try:
-                            # NaN test. Make sure the parameter is not all NaNs
-                            nan_test = np.all(np.isnan(var_data))
-                        except TypeError:
-                            nan_test = 'N/A'
+                            data_tuple = (ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
+                                          v, available, nan_test, gr_result, [g_min, min], [g_max, max], fill_test,
+                                          fill_value, gap_list)
 
-                        qc_dict = {}
-                        if v in qc_vars:
-                            tests = ['dataqc_spiketest', 'global_range_test', 'dataqc_stuckvaluetest']
-                            for test in tests:
-                                var = '{}_{}'.format(v, test)
-                                group_var = 'group_{}'.format(var)
-                                qc_df[group_var] = qc_df[var].diff().cumsum().fillna(0)
-                                tdf = qc_df.groupby([group_var, var])['time'].agg(['first', 'last'])
-                                tdf = tdf.reset_index().drop([group_var], axis=1)
-                                tdf = tdf.loc[tdf[var] ==  False].drop(var, axis=1)
-                                tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
-                                tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
-                                if tdf.empty:
-                                    qc_dict[test] = []
-                                else:
-                                    qc_dict[test] = map(list, tdf.values)
-                            data.append((ref_des, ds.stream, deployment,
-                                         start_test, stop_test, dist_test,
-                                         time_test, v, available, gr_result,
-                                         [g_min, min], [g_max, max], fill_test,
-                                         fill_value, nan_test, gap_list,
-                                         qc_dict['global_range_test'],
-                                         qc_dict['dataqc_stuckvaluetest'],
-                                         qc_dict['dataqc_spiketest']))
+                            if v in qc_vars:
+                                temp_list = []
+                                tests = ['global_range_test', 'dataqc_stuckvaluetest', 'dataqc_spiketest']
+                                for test in tests:
+                                    var = '{}_{}'.format(v, test)
+                                    group_var = 'group_{}'.format(var)
+                                    try:
+                                        qc_df[group_var] = qc_df[var].diff().cumsum().fillna(0)
+                                    except KeyError as e:
+                                        logging.warn('Error: P')
+                                        temp_list.append('DNR')
+                                        continue
+                                    tdf = qc_df.groupby([group_var, var])['time'].agg(['first', 'last'])
+                                    tdf = tdf.reset_index().drop([group_var], axis=1)
+                                    tdf = tdf.loc[tdf[var] ==  False].drop(var, axis=1)
+                                    tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
+                                    tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
+                                    if tdf.empty:
+                                        temp_list.append([])
+                                    else:
+                                        temp_list.append(map(list, tdf.values))
+                                temp_tuple = data_tuple + tuple(temp_list)
+                                data.append(temp_tuple)
+                            else:
+                                temp_tuple = data_tuple + ('n/a', 'n/a', 'n/a')
+                                data.append(temp_tuple)
                         else:
                             data.append((ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
-                                         v, available, gr_result, [g_min, min], [g_max, max], fill_test, fill_value,
-                                         nan_test, gap_list, [], [], []))
+                                         v, available, nan_test, 'n/a', 'n/a', 'n/a', 'n/a',
+                                         'n/a', gap_list, 'n/a', 'n/a', 'n/a'))
         except Exception as e:
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
+            raise
 
-    df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment',
-                                     'start', 'stop', 'distance_from_deploy_<=.5km',
-                                     'time_unique', 'variable', 'availability',
-                                     'global_range_test', 'min', 'max',
-                                     'fill_test', 'fill_value', 'all_nans',
-                                     'gaps', 'global_range', 'stuck_value', 'spike_test'])
+    df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment', 'start', 'stop', 'distance_from_deploy_<=.5km',
+                                     'time_unique', 'variable', 'availability', 'all_nans', 'global_range_test', 'min[global,data]',
+                                     'max[global,data]', 'fill_test', 'fill_value',  'gaps', 'global_range', 'stuck_value', 'spike_test'])
     df.to_csv(os.path.join(save_dir, '{}-{}-{}-{}-process_on_{}.csv'.format(ds.subsite, ds.node, ds.sensor, ds.stream, dt.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
     desired_width = 320
     pd.set_option('display.width', desired_width)
-    # url = '/Users/mikesmith/Downloads/deployment0001_GI01SUMO-RID16-03-CTDBPF000-recovered_host-ctdbp_cdef_dcl_instrument_recovered_20140910T190030.189000-20140929T080230.972000.nc'
+    url = '/Users/mikesmith/Downloads/deployment0001_GI01SUMO-SBD12-06-METBKA000-recovered_host-metbk_a_dcl_instrument_recovered_20140910T185025.007000-20150216T041757.969000.nc'
     save_dir = '/Users/mikesmith/Documents/'
-    url = '/Volumes/ooi/array/CE/CE02SHBP/LJ01D/06-CTDBPN106/data/deployment0002_CE02SHBP-LJ01D-06-CTDBPN106-streamed-ctdbp_no_sample_20160411T000000.207994-20160502T060933.583375.nc'
+    # url = '/Volumes/home/ooi/array/CE/CE02SHBP/LJ01D/06-CTDBPN106/data/deployment0002_CE02SHBP-LJ01D-06-CTDBPN106-streamed-ctdbp_no_sample_20160411T000000.207994-20160502T060933.583375.nc'
     # save_dir = '//ooi'
     main(url, save_dir)
+
+# oxygen calibration problem - look for repeating numbers in oxygen data on the low end.. this indicates where the zero is. might be some mistaken zeros
+# change nitrate sensor from isis to suna... how successful have we been in our nitrate measurements?
+
+# two gliders coming out next week
+# profiler in water (02 site)
+# 07 went down because the pwer ran low
+# deploy a full set of all instruments for all platforms
+# CE01 and CE06 - CTD with flourometer on the buoy.
