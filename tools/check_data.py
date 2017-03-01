@@ -267,7 +267,15 @@ def main(url, save_dir):
                             gr_result = None
 
                         # Fill Value test
-                        fill_test = np.all(var_data == ds[v]._FillValue)
+                        try:
+                            fill_value = ds[v]._FillValue
+                        except AttributeError:
+                            fill_value = None
+
+                        if fill_value is not None:
+                            fill_test = np.all(var_data == ds[v]._FillValue)
+                        else:
+                            fill_test = None
 
                         try:
                             # NaN test. Make sure the parameter is not all NaNs
@@ -295,13 +303,13 @@ def main(url, save_dir):
                                          start_test, stop_test, dist_test,
                                          time_test, v, available, gr_result,
                                          [g_min, min], [g_max, max], fill_test,
-                                         ds[v]._FillValue, nan_test, gap_list,
+                                         fill_value, nan_test, gap_list,
                                          qc_dict['global_range_test'],
                                          qc_dict['dataqc_stuckvaluetest'],
                                          qc_dict['dataqc_spiketest']))
                         else:
                             data.append((ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
-                                         v, available, gr_result, [g_min, min], [g_max, max], fill_test, ds[v]._FillValue,
+                                         v, available, gr_result, [g_min, min], [g_max, max], fill_test, fill_value,
                                          nan_test, gap_list, [], [], []))
         except Exception as e:
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
