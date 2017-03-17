@@ -26,6 +26,8 @@ from datetime import datetime as dt
 from haversine import haversine as distance
 import logging
 import glob
+from collections import OrderedDict
+import json
 
 t_now = dt.now().strftime('%Y%m%d_%H%M00')
 logging.basicConfig(filename='check_data_{}.log'.format(t_now), level=logging.DEBUG)
@@ -128,6 +130,9 @@ def get_global_ranges(platform, node, sensor, variable, api_user=None, api_token
         else:
             local_min = None
             local_max = None
+    else:
+        local_min = None
+        local_max = None
     return [local_min, local_max]
 
 
@@ -165,6 +170,13 @@ def parse_qc(ds):
     return df
 
 
+def find(lst, key, value):
+    for i, dic in enumerate(lst):
+        if dic[key] == value:
+            return i
+    return -1
+
+
 def main(url, save_dir):
     if type(url) is str:
         if url.endswith('.html'):
@@ -185,26 +197,19 @@ def main(url, save_dir):
     elif type(url) is list:
         datasets = url
 
-    data = []
+    data = OrderedDict(deployments=[])
     for dataset in datasets:
+        filename = os.path.basename(dataset)
         logging.info('Processing {}'.format(str(dataset)))
         try:
             print 'Opening file: {}'.format(dataset)
             with xr.open_dataset(dataset, mask_and_scale=False) as ds:
-                qc_df = parse_qc(ds)
-                qc_vars = [x for x in qc_df.keys() if not 'test' in x]
-                qc_df = qc_df.reset_index()
-                deployment = np.unique(ds['deployment'].data)[0]
-                variables = ds.data_vars.keys()
-                variables = eliminate_common_variables(variables)
-                variables = [x for x in variables if not 'qc' in x] # remove qc variables, because we don't care about them
                 ref_des = '{}-{}-{}'.format(ds.subsite, ds.node, ds.sensor)
-                qc_data = request_qc_json(ref_des) # grab data from the qc database
+                deployment = np.unique(ds['deployment'].data)[0]
+
+                qc_data = request_qc_json(ref_des)  # grab data from the qc database
                 ref_des_dict = get_parameter_list(qc_data)
                 deploy_info = get_deployment_information(qc_data, deployment)
-
-                # Gap test. Get a list of gaps
-                gap_list = test_gaps(qc_df)
 
                 # Deployment Variables
                 deploy_start = str(deploy_info['start_date'])
@@ -212,22 +217,46 @@ def main(url, save_dir):
                 deploy_lon = deploy_info['longitude']
                 deploy_lat = deploy_info['latitude']
 
-                # Deployment Time
-                data_start = ds.time_coverage_start
-                data_stop = ds.time_coverage_end
+                # Add reference designator to dictionary
+                try:
+                    data['ref_des']
+                except KeyError:
+                    data['ref_des'] = ref_des
 
-                start_test = [str(deploy_start), str(data_start)]
-                stop_test = [str(deploy_stop), str(data_stop)]
+                deployment = 'D0000{}'.format(deployment)
+
+                ind_deploy = find(data['deployments'], 'name', deployment)
+
+                if ind_deploy == -1:
+                    data['deployments'].append(OrderedDict(name=deployment,
+                                                    begin=deploy_start,
+                                                    end=deploy_stop,
+                                                    lon=deploy_lon,
+                                                    lat=deploy_lat,
+                                                    streams=[]))
+                    ind_deploy = find(data['deployments'], 'name', deployment)
+
+                ind_stream = find(data['deployments'][ind_deploy]['streams'], 'name', ds.stream)
+
+                if ind_stream == -1:
+                    data['deployments'][ind_deploy]['streams'].append(OrderedDict(name=str(ds.stream), files=[]))
+                    ind_stream = find(data['deployments'][ind_deploy]['streams'], 'name', ds.stream)
+
+                qc_df = parse_qc(ds)
+                qc_vars = [x for x in qc_df.keys() if not 'test' in x]
+                qc_df = qc_df.reset_index()
+                variables = ds.data_vars.keys()
+                variables = eliminate_common_variables(variables)
+                variables = [x for x in variables if not 'qc' in x] # remove qc variables, because we don't care about them
+
+                # Gap test. Get a list of gaps
+                gap_list = test_gaps(qc_df)
 
                 # Deployment Distance
                 data_lat = np.unique(ds['lat'])[0]
                 data_lon = np.unique(ds['lon'])[0]
                 dist_calc = distance((deploy_lat, deploy_lon), (data_lat, data_lon))
-                if dist_calc < .5: # if distance is less than .5 km
-                    dist = True
-                else:
-                    dist = False
-                dist_test = '{} [{} km]'.format(dist, dist_calc)
+                # dist_calc = '{} km'.format(dist_calc)
 
                 # Unique times
                 time = ds['time']
@@ -237,21 +266,48 @@ def main(url, save_dir):
                     time_test = True
                 else:
                     time_test = False
+                db_list = ref_des_dict[ds.stream]
+
+                [_, unmatch] = compare_lists(db_list, variables)
+
+
+                ind_file = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'], 'name', filename)
+                if ind_file == -1:
+                    data['deployments'][ind_deploy]['streams'][ind_stream]['files'].append(OrderedDict(name=filename,
+                                                                                                       time_gaps=gap_list,
+                                                                                                       lon=data_lon,
+                                                                                                       lat=data_lat,
+                                                                                                       distance_from_deploy_km=dist_calc,
+                                                                                                       unique_times=str(time_test),
+                                                                                                       variables = []))
+                    ind_file = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'], 'name', filename)
 
                 for v in variables:
                     print v
                     # Availability test
-                    if v in ref_des_dict[ds.stream]:
+                    if v in db_list:
                         available = True
                     else:
                         available = False
 
-                    if ds[v].dtype == np.dtype('S64') or ds[v].dtype == np.dtype('datetime64[ns]') or 'time' in v: # this will skip most engineering/system variables because they are strings
-                        # ['ref_des', 'stream', 'deployment', 'start', 'stop', 'distance_from_deploy_<=.5km',
-                        # 'time_unique', 'variable', 'availability', 'all_nans', 'global_range_test', 'min', 'max',
-                        # 'fill_test', 'fill_value',  'gaps', 'global_range', 'stuck_value', 'spike_test'])
-                        data.append((ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
-                                     v, available, None, None, None, None, None, None, None, None, None, None))
+                    if ds[v].dtype.kind == 'S' \
+                            or ds[v].dtype == np.dtype('datetime64[ns]') \
+                            or 'time' in v:
+                        ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
+
+                        if ind_var == -1:
+                            data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'].append(OrderedDict(variable=v,
+                                                                                                                                      available = str(available),
+                                                                                                                                      all_nans = None,
+                                                                                                                                      global_min=None,
+                                                                                                                                      global_max=None,
+                                                                                                                                      data_min=None,
+                                                                                                                                      data_max=None,
+                                                                                                                                      fill_test=None,
+                                                                                                                                      fill_value=None,
+                                                                                                                                      global_range_test=None,
+                                                                                                                                      dataqc_stuckvaluetest=None,
+                                                                                                                                      dataqc_spiketest=None))
                         continue
                     else:
                         var_data = ds[v].data
@@ -263,35 +319,32 @@ def main(url, save_dir):
                             [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
                             try:
                                 ind = reject_outliers(var_data, 3)
-                                min = np.nanmin(var_data[ind])
-                                max = np.nanmax(var_data[ind])
-                            except TypeError:
+                                min = float(np.nanmin(var_data[ind]))
+                                max = float(np.nanmax(var_data[ind]))
+                            except (TypeError, ValueError):
                                 min = None
                                 max = None
 
-                            if g_min is not None:
-                                if min >= g_min:
-                                    if max <= g_max:
-                                        gr_result = True
-                                    else:
-                                        gr_result = False
-                                else:
-                                    gr_result = False
-                            else:
-                                gr_result = None
-
                             # Fill Value test
                             try:
-                                fill_value = ds[v]._FillValue
+                                fill_value = float(ds[v]._FillValue)
                                 fill_test = np.any(var_data == ds[v]._FillValue)
                             except AttributeError:
-                                fill_value = 'n/a'
-                                fill_test = 'n/a'
+                                fill_value = ['n/a']
+                                fill_test = ['n/a']
 
-
-                            data_tuple = (ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
-                                          v, available, nan_test, gr_result, [g_min, min], [g_max, max], fill_test,
-                                          fill_value, gap_list)
+                            ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
+                            if ind_var == -1:
+                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'].append(OrderedDict(variable=v,
+                                                                                                                                          available=str(available),
+                                                                                                                                          all_nans=str(nan_test),
+                                                                                                                                          data_min = min,
+                                                                                                                                          data_max = max,
+                                                                                                                                          global_min=g_min,
+                                                                                                                                          global_max=g_max,
+                                                                                                                                          fill_test=str(fill_test),
+                                                                                                                                          fill_value=fill_value))
+                                ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
 
                             if v in qc_vars:
                                 temp_list = []
@@ -302,8 +355,8 @@ def main(url, save_dir):
                                     try:
                                         qc_df[group_var] = qc_df[var].diff().cumsum().fillna(0)
                                     except KeyError as e:
-                                        logging.warn('Error: P')
-                                        temp_list.append('DNR')
+                                        # logging.warn('Error: P')
+                                        temp_list.append(['Did not run'])
                                         continue
                                     tdf = qc_df.groupby([group_var, var])['time'].agg(['first', 'last'])
                                     tdf = tdf.reset_index().drop([group_var], axis=1)
@@ -311,35 +364,41 @@ def main(url, save_dir):
                                     tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
                                     tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
                                     if tdf.empty:
-                                        temp_list.append([])
+                                        data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var][test] = []
                                     else:
-                                        temp_list.append(map(list, tdf.values))
-                                temp_tuple = data_tuple + tuple(temp_list)
-                                data.append(temp_tuple)
+                                        data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var][test] = map(list, tdf.values)
+
                             else:
-                                temp_tuple = data_tuple + ('n/a', 'n/a', 'n/a')
-                                data.append(temp_tuple)
+                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var]['global_range_test'] = 'Not Run'
+                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var]['dataqc_stuckvaluetest'] = 'Not Run'
+                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var]['dataqc_spiketest'] = 'Not Run'
                         else:
-                            data.append((ref_des, ds.stream, deployment, start_test, stop_test, dist_test, time_test,
-                                         v, available, nan_test, 'n/a', 'n/a', 'n/a', 'n/a',
-                                         'n/a', gap_list, 'n/a', 'n/a', 'n/a'))
+                            ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
+                            if ind_var == -1:
+                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'].append(OrderedDict(variable=v,
+                                                                                                                                          available=str(available),
+                                                                                                                                          all_nans=str(nan_test),
+                                                                                                                                          data_min='Not applicable',
+                                                                                                                                          data_max='Not applicable',
+                                                                                                                                          global_min='Not applicable',
+                                                                                                                                          global_max='Not applicable',
+                                                                                                                                          fill_test='Not applicable',
+                                                                                                                                          fill_value='Not applicable'))
         except Exception as e:
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
             raise
 
-    df = pd.DataFrame(data, columns=['ref_des', 'stream', 'deployment', 'start', 'stop', 'distance_from_deploy_<=.5km',
-                                     'time_unique', 'variable', 'availability', 'all_nans', 'global_range_test', 'min[global,data]',
-                                     'max[global,data]', 'fill_test', 'fill_value',  'gaps', 'global_range', 'stuck_value', 'spike_test'])
-    df.to_csv(os.path.join(save_dir, '{}-{}-{}-{}-process_on_{}.csv'.format(ds.subsite, ds.node, ds.sensor, ds.stream, dt.now().strftime('%Y-%m-%dT%H%M00'))), index=False)
+    with open(os.path.join(save_dir, '{}-{}-{}-{}-processed_on_{}.json'.format(ds.subsite, ds.node, ds.sensor, ds.stream, dt.now().strftime('%Y-%m-%dT%H%M00'))), 'w') as outfile:
+        json.dump(data,outfile)
+    # json.dumps(data)
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
     desired_width = 320
     pd.set_option('display.width', desired_width)
-    url = '/Users/mikesmith/Downloads/deployment0001_GI01SUMO-SBD12-06-METBKA000-recovered_host-metbk_a_dcl_instrument_recovered_20140910T185025.007000-20150216T041757.969000.nc'
+    # url = '/Users/mikesmith/Downloads/deployment0001_CE04OSSM-RID26-07-NUTNRB000-recovered_inst-nutnr_b_instrument_recovered_20150316T230033-20160519T230316.nc'
+    url = '/Users/mikesmith/Documents/test/'
     save_dir = '/Users/mikesmith/Documents/'
-    # url = '/Volumes/home/ooi/array/CE/CE02SHBP/LJ01D/06-CTDBPN106/data/deployment0002_CE02SHBP-LJ01D-06-CTDBPN106-streamed-ctdbp_no_sample_20160411T000000.207994-20160502T060933.583375.nc'
-    # save_dir = '//ooi'
     main(url, save_dir)
 
 # oxygen calibration problem - look for repeating numbers in oxygen data on the low end.. this indicates where the zero is. might be some mistaken zeros
