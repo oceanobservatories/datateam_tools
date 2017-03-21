@@ -46,7 +46,7 @@ parameters_df['EndTime'] = parameters_df['EndTime'].apply(lambda x: pd.to_dateti
 
 
 
-# create timeline labels
+# create timeline labels and indices
 yticks = ['Deployments']
 
 for index, row in assets_df.iterrows():
@@ -55,12 +55,10 @@ for index, row in assets_df.iterrows():
 for index, row in stream_df.iterrows():
 	yticks.append(row["Level"])
 
-# for index, row in parameters_df.iterrows():
-# 	yticks.append(row["Level"])
+for index, row in parameters_df.iterrows():
+	yticks.append(row["Level"])
 
-
-
-yticks = np.unique(yticks)
+yticks = pd.unique(yticks)
 yticks = yticks[::-1]
 y = np.arange(len(yticks))
 counter = -1
@@ -100,6 +98,7 @@ for index, row in assets_df.iterrows():
 	instrument_time = np.array([row["StartTime"],row["EndTime"]])
 	instrument_shape = np.full((instrument_time.shape), y[counter])
 	if len(row["Level"]) == 27 and type(row["Status"]) == str:
+		plt_title = row["Level"]
 		plt.plot(instrument_time, instrument_shape, linewidth=10, color='gray')
 
 counter = counter -1
@@ -108,30 +107,39 @@ counter = counter -1
 for index, row in stream_df.iterrows():
 	stream_time = np.array([row["StartTime"],row["EndTime"]])
 	stream_shape = np.full((stream_time.shape), y[counter])
-	# TODO available timeline does not plot correctly
-	# if row["Status"] == 'AVAILABLE':
-	# 	print row["StartTime"], row["EndTime"]
-	# 	plt.plot(stream_time, stream_shape, linewidth=10, color='green')
-	if row["Status"] == 'NOT_AVAILABLE':
+	# TODO available timeline shows inaccurate overlap
+	if row["Status"] == 'AVAILABLE':
+		print row["StartTime"], row["EndTime"]
+		plt.plot(stream_time, stream_shape, linewidth=10, color='green')
+	elif row["Status"] == 'NOT_AVAILABLE':
 		plt.plot(stream_time, stream_shape, linewidth=10, color='gray')
 
 counter = counter -1
 
-# TODO add parameter timelines
-# # plot parameter timelines
-# for index, row in parameters_df.iterrows():
-# 	parameter_time = np.array([row["StartTime"],row["EndTime"]])
-# 	parameter_shape = np.full((parameter_time.shape), y[counter])
-# 	if row["Status"] == 'SUSPECT':
-# 		plt.plot(parameter_time, parameter_shape, linewidth=10, color='orange')
-# 	elif row["Status"] == 'FAIL':
-# 		plt.plot(parameter_time, parameter_shape, linewidth=10, color='red')
-# 	elif row["Status"] == 'PASS':
-# 		plt.plot(parameter_time, parameter_shape, linewidth=10, color='green')
+
+
+# plot parameter timelines
+parameters = []
+for index, row in parameters_df.iterrows():
+	parameters.append(row["Level"])
+parameters = np.unique(parameters)
+
+for parameter in parameters:
+	for index, row in parameters_df.iterrows():
+		if row["Level"] == parameter:
+			parameter_time = np.array([row["StartTime"],row["EndTime"]])
+			parameter_shape = np.full((parameter_time.shape), y[counter])
+			if row["Status"] == 'SUSPECT':
+				plt.plot(parameter_time, parameter_shape, linewidth=10, color='orange')
+			elif row["Status"] == 'FAIL':
+				plt.plot(parameter_time, parameter_shape, linewidth=10, color='red')
+			elif row["Status"] == 'PASS':
+				plt.plot(parameter_time, parameter_shape, linewidth=10, color='green')
+	counter = counter -1
 
 
 
-
+plt.title(plt_title)
 plt.yticks(y, yticks)
 plt.xticks(rotation=20)
 plt.tight_layout()
