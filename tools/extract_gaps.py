@@ -13,7 +13,7 @@ import simplejson as json
 import pandas as pd
 import os
 
-rootdir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/CTDs/CE04OSPS-SF01B-2A-CTDPFA107/deployment2'
+rootdir = '/Users/lgarzio/Documents/OOI/DataReviews'
 
 def extract_gaps(rootdir):
     for root, dirs, files in os.walk(rootdir):

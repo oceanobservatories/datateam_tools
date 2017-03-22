@@ -10,11 +10,10 @@ save_dir Location to save csv files containing analysis information
 import csv
 from tools import check_data
 
-# datasets = ['https://opendap.oceanobservatories.org/thredds/catalog/ooi/m-smith3887-gmail/20170221T202829-CE01ISSP-SP001-09-CTDPFJ000-telemetered-ctdpf_j_cspp_instrument/catalog.xml']
-#datasets = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/CTDs/CE04OSPS-SF01B-2A-CTDPFA107/deployment1/data/deployment0001_CE04OSPS-SF01B-2A-CTDPFA107-streamed-ctdpf_sbe43_sample_20141105T213049.640058-20150801T141332.013419.nc'
+datasets = ['https://opendap.oceanobservatories.org/thredds/catalog/ooi/m-smith3887-gmail/20170221T202829-CE01ISSP-SP001-09-CTDPFJ000-telemetered-ctdpf_j_cspp_instrument/catalog.xml']
+# datasets = '/Users/mikesmith/Downloads/deployment0001_RS01SUM1-LJ01B-09-PRESTB102-streamed-prest_real_time_20140918T133030-20160723T012756.763249.nc'
 # datasets = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/datareview_2017_spring/20170202T222124-RS03AXPS-PC03A-06-VADCPA301-streamed-vadcp_velocity_beam/catalog.xml'
-datasets = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/CTDs/cabled/CE04OSBP-LJ01C-06-CTDBPO108/deploy1/data/files.csv'
-save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/CTDs/cabled/CE04OSBP-LJ01C-06-CTDBPO108/deploy1/'
+save_dir = '/Users/mikesmith/Documents/'
 
 
 if type(datasets) == str:
