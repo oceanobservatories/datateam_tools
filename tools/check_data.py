@@ -8,11 +8,9 @@
 @usage Create a python script that imports check_data from the tools folder
 @ example
 from tools import check_data
-
 url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20170123T165201-RS03AXBS-MJ03A-06-PRESTA301-streamed-prest_real_time/catalog.xml'
 save_dir = '/Users/mikesmith/Documents/'
 check_data.main(url, save_dir)
-
 """
 
 import requests
@@ -210,6 +208,8 @@ def main(url, save_dir):
                 qc_data = request_qc_json(ref_des)  # grab data from the qc database
                 ref_des_dict = get_parameter_list(qc_data)
                 deploy_info = get_deployment_information(qc_data, deployment)
+                data_start = ds.time_coverage_start
+                data_stop = ds.time_coverage_end
 
                 # Deployment Variables
                 deploy_start = str(deploy_info['start_date'])
@@ -274,6 +274,8 @@ def main(url, save_dir):
                 ind_file = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'], 'name', filename)
                 if ind_file == -1:
                     data['deployments'][ind_deploy]['streams'][ind_stream]['files'].append(OrderedDict(name=filename,
+                                                                                                       data_start=data_start,
+                                                                                                       data_end=data_stop,
                                                                                                        time_gaps=gap_list,
                                                                                                        lon=data_lon,
                                                                                                        lat=data_lat,
