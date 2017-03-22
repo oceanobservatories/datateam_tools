@@ -2,6 +2,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 
 
@@ -109,12 +110,12 @@ for index, row in stream_df.iterrows():
 	stream_shape = np.full((stream_time.shape), y[counter])
 	# TODO available timeline shows inaccurate overlap
 	if row["Status"] == 'AVAILABLE':
-		print row["StartTime"], row["EndTime"]
 		plt.plot(stream_time, stream_shape, linewidth=10, color='green')
 	elif row["Status"] == 'NOT_AVAILABLE':
-		plt.plot(stream_time, stream_shape, linewidth=10, color='gray')
+		plt.plot(stream_time, stream_shape, linewidth=10, color='gray',zorder = 3)
 
 counter = counter -1
+
 
 
 
@@ -124,7 +125,17 @@ for index, row in parameters_df.iterrows():
 	parameters.append(row["Level"])
 parameters = np.unique(parameters)
 
+# plot data availability derived from stream level beneath data quality issues
 for parameter in parameters:
+	for index, row in stream_df.iterrows():
+		stream_time = np.array([row["StartTime"],row["EndTime"]])
+		stream_shape = np.full((stream_time.shape), y[counter])
+		# TODO available timeline shows inaccurate overlap
+		if row["Status"] == 'AVAILABLE':
+			plt.plot(stream_time, stream_shape, linewidth=10, color='green')
+		elif row["Status"] == 'NOT_AVAILABLE':
+			plt.plot(stream_time, stream_shape, linewidth=10, color='gray',zorder = 3)
+
 	for index, row in parameters_df.iterrows():
 		if row["Level"] == parameter:
 			parameter_time = np.array([row["StartTime"],row["EndTime"]])
@@ -138,6 +149,7 @@ for parameter in parameters:
 	counter = counter -1
 
 
+# TODO create color legend
 
 plt.title(plt_title)
 plt.yticks(y, yticks)
