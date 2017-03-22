@@ -23,7 +23,6 @@ import numpy as np
 from datetime import datetime as dt
 from haversine import haversine as distance
 import logging
-import glob
 from collections import OrderedDict
 import json
 
@@ -140,31 +139,36 @@ def parse_qc(ds):
     executed = [x+'_qc_executed' for x in vars]
     key_list = vars + results + executed
 
-    df = ds[key_list].to_dataframe().drop(['lat', 'lon'], axis=1)
+    if not vars:
+        # No variables were qc'ed for some reason
+        df = ds['id'].to_dataframe().drop(['lat', 'lon'], axis=1)
+    else:
+        df = ds[key_list].to_dataframe().drop(['lat', 'lon'], axis=1)
 
-    for var in vars:
-        qc_result = var + '_qc_results'
-        qc_executed = var + '_qc_executed'
-        names = {
-            0: var + '_global_range_test',
-            1: var + '_dataqc_localrangetest',
-            2: var + '_dataqc_spiketest',
-            3: var + '_dataqc_polytrendtest',
-            4: var + '_dataqc_stuckvaluetest',
-            5: var + '_dataqc_gradienttest',
-            7: var + '_dataqc_propagateflags',
-        }
-        # Just in case a different set of tests were run on some datapoint
-        # *this should never happen*
-        executed = np.bitwise_or.reduce(df[qc_executed].values)
-        executed_bits = np.unpackbits(executed.astype('uint8'))
-        for index, value in enumerate(executed_bits[::-1]):
-            if value:
-                name = names.get(index)
-                mask = 2 ** index
-                values = (df[qc_result].values & mask) > 0
-                df[name] = values
-        df.drop([qc_executed, qc_result], axis=1, inplace=True)
+
+        for var in vars:
+            qc_result = var + '_qc_results'
+            qc_executed = var + '_qc_executed'
+            names = {
+                0: var + '_global_range_test',
+                1: var + '_dataqc_localrangetest',
+                2: var + '_dataqc_spiketest',
+                3: var + '_dataqc_polytrendtest',
+                4: var + '_dataqc_stuckvaluetest',
+                5: var + '_dataqc_gradienttest',
+                7: var + '_dataqc_propagateflags',
+            }
+            # Just in case a different set of tests were run on some datapoint
+            # *this should never happen*
+            executed = np.bitwise_or.reduce(df[qc_executed].values)
+            executed_bits = np.unpackbits(executed.astype('uint8'))
+            for index, value in enumerate(executed_bits[::-1]):
+                if value:
+                    name = names.get(index)
+                    mask = 2 ** index
+                    values = (df[qc_result].values & mask) > 0
+                    df[name] = values
+            df.drop([qc_executed, qc_result], axis=1, inplace=True)
     return df
 
 
@@ -182,18 +186,17 @@ def main(url, save_dir):
             tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
             c = Crawl(url, select=[".*ncml"])
             datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
+            splitter = url.split('/')[-2].split('-')
         elif url.endswith('.xml'):
             tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
             c = Crawl(url, select=[".*ncml"])
             datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
+            splitter = url.split('/')[-2].split('-')
         elif url.endswith('.nc') or url.endswith('.ncml'):
             datasets = [url]
-        elif os.path.exists(url):
-            datasets = glob.glob(url + '/*.nc')
+            splitter = url.split('/')[-2].split('-')
         else:
             print 'Unrecognized input. Input must be a string of the file location(s) or list of file(s)'
-    elif type(url) is list:
-        datasets = url
 
     data = OrderedDict(deployments=[])
     for dataset in datasets:
@@ -209,7 +212,7 @@ def main(url, save_dir):
                 ref_des_dict = get_parameter_list(qc_data)
                 deploy_info = get_deployment_information(qc_data, deployment)
                 data_start = ds.time_coverage_start
-                data_stop = ds.time_coverage_end
+                data_end = ds.time_coverage_end
 
                 # Deployment Variables
                 deploy_start = str(deploy_info['start_date'])
@@ -243,6 +246,7 @@ def main(url, save_dir):
                     ind_stream = find(data['deployments'][ind_deploy]['streams'], 'name', ds.stream)
 
                 qc_df = parse_qc(ds)
+
                 qc_vars = [x for x in qc_df.keys() if not 'test' in x]
                 qc_df = qc_df.reset_index()
                 variables = ds.data_vars.keys()
@@ -256,7 +260,6 @@ def main(url, save_dir):
                 data_lat = np.unique(ds['lat'])[0]
                 data_lon = np.unique(ds['lon'])[0]
                 dist_calc = distance((deploy_lat, deploy_lon), (data_lat, data_lon))
-                # dist_calc = '{} km'.format(dist_calc)
 
                 # Unique times
                 time = ds['time']
@@ -268,24 +271,27 @@ def main(url, save_dir):
                     time_test = False
                 db_list = ref_des_dict[ds.stream]
 
-                [_, unmatch] = compare_lists(db_list, variables)
+                [_, unmatch1] = compare_lists(db_list, variables)
+                [_, unmatch2] = compare_lists(variables, db_list)
 
 
                 ind_file = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'], 'name', filename)
                 if ind_file == -1:
                     data['deployments'][ind_deploy]['streams'][ind_stream]['files'].append(OrderedDict(name=filename,
                                                                                                        data_start=data_start,
-                                                                                                       data_end=data_stop,
+                                                                                                       data_end=data_end,
                                                                                                        time_gaps=gap_list,
                                                                                                        lon=data_lon,
                                                                                                        lat=data_lat,
                                                                                                        distance_from_deploy_km=dist_calc,
                                                                                                        unique_times=str(time_test),
-                                                                                                       variables = []))
+                                                                                                       variables = [],
+                                                                                                       vars_not_in_file=unmatch1,
+                                                                                                       vars_not_in_db=unmatch2))
                     ind_file = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'], 'name', filename)
 
                 for v in variables:
-                    print v
+                    # print v
                     # Availability test
                     if v in db_list:
                         available = True
@@ -390,24 +396,14 @@ def main(url, save_dir):
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
             raise
 
-    with open(os.path.join(save_dir, '{}-{}-{}-{}-processed_on_{}.json'.format(ds.subsite, ds.node, ds.sensor, ds.stream, dt.now().strftime('%Y-%m-%dT%H%M00'))), 'w') as outfile:
+    with open(os.path.join(save_dir, '{}-{}-{}-{}_{}-{}-processed_on_{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], dt.now().strftime('%Y-%m-%dT%H%M00'))), 'w') as outfile:
         json.dump(data,outfile)
-    # json.dumps(data)
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
     desired_width = 320
     pd.set_option('display.width', desired_width)
-    # url = '/Users/mikesmith/Downloads/deployment0001_CE04OSSM-RID26-07-NUTNRB000-recovered_inst-nutnr_b_instrument_recovered_20150316T230033-20160519T230316.nc'
-    url = '/Users/mikesmith/Documents/test/'
+    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/michaesm-marine-rutgers/20170317T134856-CE06ISSM-RID16-07-NUTNRB000-recovered_inst-nutnr_b_instrument_recovered/catalog.html'
     save_dir = '/Users/mikesmith/Documents/'
+
     main(url, save_dir)
-
-# oxygen calibration problem - look for repeating numbers in oxygen data on the low end.. this indicates where the zero is. might be some mistaken zeros
-# change nitrate sensor from isis to suna... how successful have we been in our nitrate measurements?
-
-# two gliders coming out next week
-# profiler in water (02 site)
-# 07 went down because the pwer ran low
-# deploy a full set of all instruments for all platforms
-# CE01 and CE06 - CTD with flourometer on the buoy.
