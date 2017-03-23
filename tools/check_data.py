@@ -25,6 +25,7 @@ from haversine import haversine as distance
 import logging
 from collections import OrderedDict
 import json
+import yaml
 
 t_now = dt.now().strftime('%Y%m%d_%H%M00')
 logging.basicConfig(filename='check_data_{}.log'.format(t_now), level=logging.DEBUG)
@@ -184,12 +185,12 @@ def main(url, save_dir):
         if url.endswith('.html'):
             url = url.replace('.html', '.xml')
             tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
-            c = Crawl(url, select=[".*ncml"])
+            c = Crawl(url, select=[".*\.nc$"], debug=True)
             datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
             splitter = url.split('/')[-2].split('-')
         elif url.endswith('.xml'):
             tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
-            c = Crawl(url, select=[".*ncml"])
+            c = Crawl(url, select=[".*\.nc$"], debug=True)
             datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
             splitter = url.split('/')[-2].split('-')
         elif url.endswith('.nc') or url.endswith('.ncml'):
@@ -198,7 +199,7 @@ def main(url, save_dir):
         else:
             print 'Unrecognized input. Input must be a string of the file location(s) or list of file(s)'
 
-    data = OrderedDict(deployments=[])
+    data = OrderedDict(deployments=OrderedDict())
     for dataset in datasets:
         filename = os.path.basename(dataset)
         logging.info('Processing {}'.format(str(dataset)))
@@ -228,22 +229,21 @@ def main(url, save_dir):
 
                 deployment = 'D0000{}'.format(deployment)
 
-                ind_deploy = find(data['deployments'], 'name', deployment)
+                deployments = data['deployments'].keys()
 
-                if ind_deploy == -1:
-                    data['deployments'].append(OrderedDict(name=deployment,
-                                                    begin=deploy_start,
-                                                    end=deploy_stop,
-                                                    lon=deploy_lon,
-                                                    lat=deploy_lat,
-                                                    streams=[]))
-                    ind_deploy = find(data['deployments'], 'name', deployment)
+                # Add deployment to dictionary and initialize stream sub dictionary
+                if not deployment in deployments:
+                    data['deployments'][deployment] = OrderedDict(begin=deploy_start,
+                                                           end=deploy_stop,
+                                                           lon=deploy_lon,
+                                                           lat=deploy_lat,
+                                                           streams=OrderedDict())
 
-                ind_stream = find(data['deployments'][ind_deploy]['streams'], 'name', ds.stream)
+                streams = data['deployments'][deployment]['streams'].keys()
 
-                if ind_stream == -1:
-                    data['deployments'][ind_deploy]['streams'].append(OrderedDict(name=str(ds.stream), files=[]))
-                    ind_stream = find(data['deployments'][ind_deploy]['streams'], 'name', ds.stream)
+                # Add stream to subdictionary inside deployment
+                if not ds.stream in streams:
+                    data['deployments'][deployment]['streams'][ds.stream] = OrderedDict(files=OrderedDict())
 
                 qc_df = parse_qc(ds)
 
@@ -274,21 +274,21 @@ def main(url, save_dir):
                 [_, unmatch1] = compare_lists(db_list, variables)
                 [_, unmatch2] = compare_lists(variables, db_list)
 
+                filenames = data['deployments'][deployment]['streams'][ds.stream]['files']
 
-                ind_file = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'], 'name', filename)
-                if ind_file == -1:
-                    data['deployments'][ind_deploy]['streams'][ind_stream]['files'].append(OrderedDict(name=filename,
-                                                                                                       data_start=data_start,
-                                                                                                       data_end=data_end,
-                                                                                                       time_gaps=gap_list,
-                                                                                                       lon=data_lon,
-                                                                                                       lat=data_lat,
-                                                                                                       distance_from_deploy_km=dist_calc,
-                                                                                                       unique_times=str(time_test),
-                                                                                                       variables = [],
-                                                                                                       vars_not_in_file=unmatch1,
-                                                                                                       vars_not_in_db=unmatch2))
-                    ind_file = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'], 'name', filename)
+                if not filename in filenames:
+                    data['deployments'][deployment]['streams'][ds.stream]['files'][filename] = OrderedDict(data_start=data_start,
+                                                                                                    data_end=data_end,
+                                                                                                    time_gaps=gap_list,
+                                                                                                    lon=data_lon,
+                                                                                                    lat=data_lat,
+                                                                                                    distance_from_deploy_km=dist_calc,
+                                                                                                    unique_times=str(time_test),
+                                                                                                    variables = OrderedDict(),
+                                                                                                    vars_not_in_file=unmatch1,
+                                                                                                    vars_not_in_db=unmatch2)
+                else:
+                    print filename + ' already in dictionary. Skipping'
 
                 for v in variables:
                     # print v
@@ -301,21 +301,10 @@ def main(url, save_dir):
                     if ds[v].dtype.kind == 'S' \
                             or ds[v].dtype == np.dtype('datetime64[ns]') \
                             or 'time' in v:
-                        ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
+                        dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
 
-                        if ind_var == -1:
-                            data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'].append(OrderedDict(variable=v,
-                                                                                                                                      available = str(available),
-                                                                                                                                      all_nans = None,
-                                                                                                                                      global_min=None,
-                                                                                                                                      global_max=None,
-                                                                                                                                      data_min=None,
-                                                                                                                                      data_max=None,
-                                                                                                                                      fill_test=None,
-                                                                                                                                      fill_value=None,
-                                                                                                                                      global_range_test=None,
-                                                                                                                                      dataqc_stuckvaluetest=None,
-                                                                                                                                      dataqc_spiketest=None))
+                        if not v in dict_vars:
+                            data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available = str(available))
                         continue
                     else:
                         var_data = ds[v].data
@@ -338,21 +327,19 @@ def main(url, save_dir):
                                 fill_value = float(ds[v]._FillValue)
                                 fill_test = np.any(var_data == ds[v]._FillValue)
                             except AttributeError:
-                                fill_value = ['n/a']
-                                fill_test = ['n/a']
+                                fill_value = None
+                                fill_test = None
 
-                            ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
-                            if ind_var == -1:
-                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'].append(OrderedDict(variable=v,
-                                                                                                                                          available=str(available),
-                                                                                                                                          all_nans=str(nan_test),
-                                                                                                                                          data_min = min,
-                                                                                                                                          data_max = max,
-                                                                                                                                          global_min=g_min,
-                                                                                                                                          global_max=g_max,
-                                                                                                                                          fill_test=str(fill_test),
-                                                                                                                                          fill_value=fill_value))
-                                ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
+                            dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
+                            if not v in dict_vars:
+                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available),
+                                                                                                                                all_nans=str(nan_test),
+                                                                                                                                data_min = min,
+                                                                                                                                data_max = max,
+                                                                                                                                global_min=g_min,
+                                                                                                                                global_max=g_max,
+                                                                                                                                fill_test=str(fill_test),
+                                                                                                                                fill_value=fill_value)
 
                             if v in qc_vars:
                                 temp_list = []
@@ -372,38 +359,31 @@ def main(url, save_dir):
                                     tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
                                     tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
                                     if tdf.empty:
-                                        data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var][test] = []
+                                        data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v][test] = []
                                     else:
-                                        data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var][test] = map(list, tdf.values)
+                                        data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v][test] = map(list, tdf.values)
 
                             else:
-                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var]['global_range_test'] = 'Not Run'
-                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var]['dataqc_stuckvaluetest'] = 'Not Run'
-                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'][ind_var]['dataqc_spiketest'] = 'Not Run'
+                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['global_range_test'] = None
+                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['dataqc_stuckvaluetest'] = None
+                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['dataqc_spiketest'] = None
                         else:
-                            ind_var = find(data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'], 'variable', v)
-                            if ind_var == -1:
-                                data['deployments'][ind_deploy]['streams'][ind_stream]['files'][ind_file]['variables'].append(OrderedDict(variable=v,
-                                                                                                                                          available=str(available),
-                                                                                                                                          all_nans=str(nan_test),
-                                                                                                                                          data_min='Not applicable',
-                                                                                                                                          data_max='Not applicable',
-                                                                                                                                          global_min='Not applicable',
-                                                                                                                                          global_max='Not applicable',
-                                                                                                                                          fill_test='Not applicable',
-                                                                                                                                          fill_value='Not applicable'))
+                            dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
+                            if not v in dict_vars:
+                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available),
+                                                                                                                                all_nans=str(nan_test))
         except Exception as e:
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
             raise
 
-    with open(os.path.join(save_dir, '{}-{}-{}-{}_{}-{}-processed_on_{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], dt.now().strftime('%Y-%m-%dT%H%M00'))), 'w') as outfile:
+    with open(os.path.join(save_dir, '{}-{}-{}-{}_{}-{}-processed_on_{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], dt.now().strftime('%Y-%m-%dT%H%M%S'))), 'w') as outfile:
         json.dump(data,outfile)
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
     desired_width = 320
     pd.set_option('display.width', desired_width)
-    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/michaesm-marine-rutgers/20170317T134856-CE06ISSM-RID16-07-NUTNRB000-recovered_inst-nutnr_b_instrument_recovered/catalog.html'
+    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20170223T213020-RS03AXPS-SF03A-2A-CTDPFA302-streamed-ctdpf_sbe43_sample/catalog.html'
     save_dir = '/Users/mikesmith/Documents/'
 
     main(url, save_dir)
