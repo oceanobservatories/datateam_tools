@@ -3,47 +3,45 @@
 @file extract_gaps.py
 @author Lori Garzio
 @email lgarzio@marine.rutgers.edu
-@brief Read the .json output from analyze_nc_data.py and extract the data gaps for each file in a directory
+@brief Read the .json output from analyze_nc_data.py and extract the data gaps
 @purpose Provide a human-readable file for data gaps
 @usage
-rootdir Directory that contains .json files, and where the output will be saved.
+dataset Path to .json output from analyze_nc_data.py
+save_dir Location to save output
 """
 
 import simplejson as json
 import pandas as pd
 import os
 
-rootdir = '/Users/lgarzio/Documents/OOI/DataReviews'
+dataset = '/Users/lgarzio/Documents/OOI/DataReviews/CE06ISSM-RID16-07-NUTNRB000_recovered_inst-nutnr_b_instrument_recovered-processed_on_2017-03-22T172633.json'
+save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/'
 
-def extract_gaps(rootdir):
-    for root, dirs, files in os.walk(rootdir):
-        for filename in files:
-            if filename.endswith('.json'):
-                print filename
-                f = os.path.join(root,filename)
-                file = open(f, 'r')
-                data = json.load(file)
+def extract_gaps(dataset,save_dir):
+    file = open(dataset, 'r')
+    data = json.load(file)
+    ref_des = data.get('ref_des')
+    for d in data['deployments']:
+        deployment = d
+        deploy_begin = data['deployments'][d]['begin']
+        deploy_end = data['deployments'][d]['end']
+        for s in data['deployments'][d]['streams']:
+            stream = s
+            for x in data['deployments'][d]['streams'][s]['files']:
+                fName = x
+                gaps = data['deployments'][d]['streams'][s]['files'][x]['time_gaps']
+                data_begin = data['deployments'][d]['streams'][s]['files'][x]['data_start']
+                data_end = data['deployments'][d]['streams'][s]['files'][x]['data_end']
 
-                ref_des = data.get('ref_des')
-                for item in data['deployments']:
-                    deployment = item['name']
-                    deploy_begin = item['begin']
-                    deploy_end = item['end']
-                    for s in item['streams']:
-                        for x in s['files']:
-                            fname = x['name']
-                            gaps = x['time_gaps']
-                            data_begin = x['data_start']
-                            data_end = x['data_end']
+                try:
+                    df
+                    df.append((ref_des,fName,stream,deployment,deploy_begin,deploy_end,data_begin,data_end,gaps))
+                except NameError:
+                    df = []
+                    df.append((ref_des,fName,stream,deployment,deploy_begin,deploy_end,data_begin,data_end,gaps))
 
-                            try:
-                                print df
-                                df.append((ref_des,fname,deployment,deploy_begin,deploy_end,data_begin,data_end,gaps))
-                            except NameError:
-                                df = []
-                                df.append((ref_des,fname,deployment,deploy_begin,deploy_end,data_begin,data_end,gaps))
+    df = pd.DataFrame(df, columns=['ref_des', 'filename', 'stream', 'deployment', 'deploy_begin', 'deploy_end',
+                                   'data_begin (file)', 'data_end (file)', 'gaps'])
+    df.to_csv(os.path.join(save_dir, ref_des + '-data_gaps.csv'), index=False)
 
-    df = pd.DataFrame(df, columns=['ref_des', 'filename', 'deployment', 'deploy_begin', 'deploy_end', 'data_begin (file)', 'data_end (file)', 'gaps'])
-    df.to_csv(os.path.join(rootdir, ref_des + '-data_gaps.csv'), index=False)
-
-extract_gaps(rootdir)
+extract_gaps(dataset,save_dir)
