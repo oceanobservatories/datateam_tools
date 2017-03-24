@@ -376,7 +376,7 @@ def main(url, save_dir):
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
             raise
 
-    with open(os.path.join(save_dir, '{}-{}-{}-{}_{}-{}-processed_on_{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], dt.now().strftime('%Y-%m-%dT%H%M%S'))), 'w') as outfile:
+    with open(os.path.join(save_dir, '{}-{}-{}-{}__{}-{}__requested-{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], splitter[0])), 'w') as outfile:
         json.dump(data,outfile)
 
 if __name__ == '__main__':
