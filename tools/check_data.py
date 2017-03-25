@@ -376,8 +376,10 @@ def main(url, save_dir):
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
             raise
 
-    with open(os.path.join(save_dir, '{}-{}-{}-{}__{}-{}__requested-{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], splitter[0])), 'w') as outfile:
+    save_file = os.path.join(save_dir, '{}-{}-{}-{}__{}-{}__requested-{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], splitter[0]))
+    with open(save_file, 'w') as outfile:
         json.dump(data,outfile)
+    return save_file
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
