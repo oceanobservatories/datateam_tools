@@ -43,8 +43,8 @@ def test_gaps(df):
     df['diff'] = df['time'].diff()
     index = df['diff'][df['diff'] > pd.Timedelta(days=1)].index.tolist()
     for i in index:
-        gap_list.append([pd.to_datetime(str(df['time'][i-1])).strftime('%Y-%m-%d %H:%M:%S'),
-                         pd.to_datetime(str(df['time'][i])).strftime('%Y-%m-%d %H:%M:%S')])
+        gap_list.append([pd.to_datetime(str(df['time'][i-1])).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                         pd.to_datetime(str(df['time'][i])).strftime('%Y-%m-%dT%H:%M:%SZ')])
     return gap_list
 
 
@@ -212,12 +212,15 @@ def main(url, save_dir):
                 qc_data = request_qc_json(ref_des)  # grab data from the qc database
                 ref_des_dict = get_parameter_list(qc_data)
                 deploy_info = get_deployment_information(qc_data, deployment)
-                data_start = ds.time_coverage_start
-                data_end = ds.time_coverage_end
+                data_start = ds.time_coverage_start + 'Z'
+                data_end = ds.time_coverage_end + 'Z'
 
                 # Deployment Variables
-                deploy_start = str(deploy_info['start_date'])
-                deploy_stop = str(deploy_info['stop_date'])
+                deploy_start = str(deploy_info['start_date'] + 'Z')
+                if deploy_info['stop_date']:
+                    deploy_stop = str(deploy_info['stop_date'] + 'Z')
+                else:
+                    deploy_stop = str(deploy_info['stop_date'])
                 deploy_lon = deploy_info['longitude']
                 deploy_lat = deploy_info['latitude']
 
@@ -356,8 +359,8 @@ def main(url, save_dir):
                                     tdf = qc_df.groupby([group_var, var])['time'].agg(['first', 'last'])
                                     tdf = tdf.reset_index().drop([group_var], axis=1)
                                     tdf = tdf.loc[tdf[var] ==  False].drop(var, axis=1)
-                                    tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
-                                    tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
+                                    tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ'))
+                                    tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ'))
                                     if tdf.empty:
                                         data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v][test] = []
                                     else:
