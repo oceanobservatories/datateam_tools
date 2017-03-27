@@ -10,14 +10,19 @@ annotations_dir Directory that contains the annotation csvs cloned from https://
 user User that completed the review
 """
 import csv
+
+from datateam_tools.tools import annotate_variable
 from tools import check_data, stream_gaps_annotations
 
-datasets = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/lgarzio-marine-rutgers/20170322T160522-CE04OSBP-LJ01C-06-CTDBPO108-streamed-ctdbp_no_sample/catalog.xml'
+datasets = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/leila.ocean@gmail.com/20170322T221944-CE04OSPS-SF01B-2A-CTDPFA107-streamed-ctdpf_sbe43_sample/catalog.xml'
+#datasets = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/lgarzio-marine-rutgers/20170322T160522-CE04OSBP-LJ01C-06-CTDBPO108-streamed-ctdbp_no_sample/catalog.xml'
 # datasets = '/Users/mikesmith/Downloads/deployment0001_RS01SUM1-LJ01B-09-PRESTB102-streamed-prest_real_time_20140918T133030-20160723T012756.763249.nc'
 # datasets = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/CTDs/cabled/CE04OSBP-LJ01C-06-CTDBPO108/deploy3/data/files.csv'
-save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/CTDs/cabled/CE04OSBP-LJ01C-06-CTDBPO108/'
-annotations_dir = '/Users/lgarzio/Documents/repo/OOI/ooi-data-review/annotations/annotations'
-user = 'lori'
+save_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/tests/'
+#save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/CTDs/cabled/CE04OSBP-LJ01C-06-CTDBPO108/'
+annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
+#annotations_dir = '/Users/lgarzio/Documents/repo/OOI/ooi-data-review/annotations/annotations'
+user = 'leila'
 
 
 if type(datasets) == str:
@@ -34,3 +39,4 @@ if type(datasets) == str:
 for url in datasets:
     json_file = check_data.main(url, save_dir)
     stream_gaps_annotations.main(json_file, annotations_dir, user)
+    annotate_variable.main(json_file, annotations_dir, user)
