@@ -258,8 +258,9 @@ def main(url, save_dir):
                                                            data_times = dict(start=[], end=[]))
 
                 # Add data start and stop times to a data_times array. When the files are all processed, it checks data vs deployment times
-                data['deployments'][deployment]['data_times']['start'].append(data_start)
-                data['deployments'][deployment]['data_times']['end'].append(data_end)
+                if ds.stream == splitter[-1]:
+                    data['deployments'][deployment]['data_times']['start'].append(data_start)
+                    data['deployments'][deployment]['data_times']['end'].append(data_end)
 
 
                 streams = data['deployments'][deployment]['streams'].keys()
