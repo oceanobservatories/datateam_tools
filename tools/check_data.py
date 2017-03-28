@@ -63,7 +63,7 @@ def test_gaps(df):
 
 def eliminate_common_variables(list):
     common = ['quality_flag', 'provenance', 'id', 'deployment'] #time is in this list because it doesn't show up as a variable in an xarray ds
-    regex = re.compile('|'.join(common))
+    regex = re.compile(r'\b(?:%s)\b' % '|'.join(common))
     list = [s for s in list if not regex.search(s)]
     return list
 
