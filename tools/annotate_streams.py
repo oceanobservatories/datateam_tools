@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-@file stream_gaps_annotations.py
+@file annotate_streams.py
 @author Lori Garzio
 @email lgarzio@marine.rutgers.edu
 @brief Read the .json output from analyze_nc_data.py, extract data availability and gaps, and write the results to stream-level annotation csvs (https://github.com/ooi-data-review/annotations)

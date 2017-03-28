@@ -2,7 +2,7 @@
 """
 @author Mike Smith
 @email michaesm@marine.rutgers.edu
-@brief This is a wrapper script that imports the tool, check_data, as a python method.
+@brief This is a wrapper script that imports the tools: check_data, annotate_streams and annotate_variable as python methods.
 @usage
 datasets List of thredds catalog xmls, path to a csv file containing multiple xml urls (carriage return between each), or a string containing a single catalog xml
 save_dir Location to save .json output files containing analysis information
@@ -11,8 +11,7 @@ user User that completed the review
 """
 import csv
 
-from datateam_tools.tools import annotate_variable
-from tools import check_data, stream_gaps_annotations
+from tools import check_data, annotate_streams, annotate_variable
 
 datasets = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/leila.ocean@gmail.com/20170322T221944-CE04OSPS-SF01B-2A-CTDPFA107-streamed-ctdpf_sbe43_sample/catalog.xml'
 #datasets = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/lgarzio-marine-rutgers/20170322T160522-CE04OSBP-LJ01C-06-CTDBPO108-streamed-ctdbp_no_sample/catalog.xml'
@@ -38,5 +37,5 @@ if type(datasets) == str:
 
 for url in datasets:
     json_file = check_data.main(url, save_dir)
-    stream_gaps_annotations.main(json_file, annotations_dir, user)
+    annotate_streams.main(json_file, annotations_dir, user)
     annotate_variable.main(json_file, annotations_dir, user)
