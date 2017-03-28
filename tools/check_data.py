@@ -25,10 +25,22 @@ from haversine import haversine as distance
 import logging
 from collections import OrderedDict
 import json
-import yaml
 
 t_now = dt.now().strftime('%Y%m%d_%H%M00')
 logging.basicConfig(filename='check_data_{}.log'.format(t_now), level=logging.DEBUG)
+
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [atoi(c) for c in re.split('(\d+)', text)]
 
 
 def reject_outliers(data, m=3):
@@ -41,10 +53,11 @@ def reject_outliers(data, m=3):
 def test_gaps(df):
     gap_list = []
     df['diff'] = df['time'].diff()
-    index = df['diff'][df['diff'] > pd.Timedelta(days=1)].index.tolist()
-    for i in index:
+    index_gap = df['diff'][df['diff'] > pd.Timedelta(days=1)].index.tolist()
+    for i in index_gap:
         gap_list.append([pd.to_datetime(str(df['time'][i-1])).strftime('%Y-%m-%dT%H:%M:%SZ'),
                          pd.to_datetime(str(df['time'][i])).strftime('%Y-%m-%dT%H:%M:%SZ')])
+
     return gap_list
 
 
@@ -185,12 +198,12 @@ def main(url, save_dir):
         if url.endswith('.html'):
             url = url.replace('.html', '.xml')
             tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
-            c = Crawl(url, select=[".*\.nc$"], debug=True)
+            c = Crawl(url, select=[".*\.nc$"], debug=False)
             datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
             splitter = url.split('/')[-2].split('-')
         elif url.endswith('.xml'):
             tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
-            c = Crawl(url, select=[".*\.nc$"], debug=True)
+            c = Crawl(url, select=[".*\.nc$"], debug=False)
             datasets = [os.path.join(tds_url, x.id) for x in c.datasets]
             splitter = url.split('/')[-2].split('-')
         elif url.endswith('.nc') or url.endswith('.ncml'):
@@ -215,6 +228,7 @@ def main(url, save_dir):
                 data_start = ds.time_coverage_start + 'Z'
                 data_end = ds.time_coverage_end + 'Z'
 
+
                 # Deployment Variables
                 deploy_start = str(deploy_info['start_date'] + 'Z')
                 if deploy_info['stop_date']:
@@ -236,11 +250,17 @@ def main(url, save_dir):
 
                 # Add deployment to dictionary and initialize stream sub dictionary
                 if not deployment in deployments:
-                    data['deployments'][deployment] = OrderedDict(begin=deploy_start,
+                    data['deployments'][deployment] = OrderedDict(start=deploy_start,
                                                            end=deploy_stop,
                                                            lon=deploy_lon,
                                                            lat=deploy_lat,
-                                                           streams=OrderedDict())
+                                                           streams=OrderedDict(),
+                                                           data_times = dict(start=[], end=[]))
+
+                # Add data start and stop times to a data_times array. When the files are all processed, it checks data vs deployment times
+                data['deployments'][deployment]['data_times']['start'].append(data_start)
+                data['deployments'][deployment]['data_times']['end'].append(data_end)
+
 
                 streams = data['deployments'][deployment]['streams'].keys()
 
@@ -373,11 +393,19 @@ def main(url, save_dir):
                         else:
                             dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
                             if not v in dict_vars:
-                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available),
-                                                                                                                                all_nans=str(nan_test))
+                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available), all_nans=str(nan_test))
         except Exception as e:
             logging.warn('Error: Processing failed due to {}.'.format(str(e)))
             raise
+
+    deployments = data['deployments'].keys()
+    for d in deployments:
+        data['deployments'][d]['data_times']['start'].sort(key=natural_keys)
+        data['deployments'][d]['data_times']['end'].sort(key=natural_keys)
+
+        data['deployments'][d]['data_times']['start'] = data['deployments'][d]['data_times']['start'][0]
+        data['deployments'][d]['data_times']['end'] = data['deployments'][d]['data_times']['end'][-1]
+
 
     save_file = os.path.join(save_dir, '{}-{}-{}-{}__{}-{}__requested-{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], splitter[0]))
     with open(save_file, 'w') as outfile:
@@ -388,7 +416,8 @@ if __name__ == '__main__':
     # change pandas display width to view longer dataframes
     desired_width = 320
     pd.set_option('display.width', desired_width)
-    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20170223T213020-RS03AXPS-SF03A-2A-CTDPFA302-streamed-ctdpf_sbe43_sample/catalog.html'
+    # url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20170223T213020-RS03AXPS-SF03A-2A-CTDPFA302-streamed-ctdpf_sbe43_sample/catalog.html'
+    url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/michaesm-marine-rutgers/20170317T160317-CE09OSSM-RID26-07-NUTNRB000-recovered_inst-nutnr_b_instrument_recovered/catalog.html'
     save_dir = '/Users/mikesmith/Documents/'
 
     main(url, save_dir)
