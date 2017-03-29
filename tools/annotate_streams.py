@@ -17,6 +17,7 @@ import csv
 import os
 from datetime import datetime as dt
 import re
+import pandas as pd
 
 
 def make_dir(save_dir):
@@ -50,6 +51,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_name, user):
         deploy_begin = data['deployments'][d]['start'] # asset management start date
         deploy_end = data['deployments'][d]['end'] # asset management end date
         data_begin = data['deployments'][d]['data_times']['start'] # first data file start date
+        data_begin = pd.to_datetime(data_begin).strftime('%Y-%m-%dT%H:%M:%SZ')
 #        data_end = data['deployments'][d]['data_times']['end']  # last data file end date
 
         # read in stream information
@@ -75,7 +77,9 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_name, user):
             # read data file information
             for x in file_list_sorted:
                 data_start_file = data['deployments'][d]['streams'][s]['files'][x]['data_start']  # data start date of file
+                data_start_file = pd.to_datetime(data_start_file).strftime('%Y-%m-%dT%H:%M:%SZ')
                 data_end_file = data['deployments'][d]['streams'][s]['files'][x]['data_end'] # data end date of file
+                data_end_file = pd.to_datetime(data_end_file).strftime('%Y-%m-%dT%H:%M:%SZ')
                 gaps = data['deployments'][d]['streams'][s]['files'][x]['time_gaps']  # list of gaps
 
                 # if cnf is not 0: # check data gaps between files
@@ -89,7 +93,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_name, user):
                 if not gaps:
                     newline = (stream,deployment,data_start_file,data_end_file,'','NOT_EVALUATED','','check: evaluate parameters',user)
                     file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                    file_end = data_end_file
+                    #file_end = data_end_file
 
                     if cnf is len(file_list)-1: # last file, check against deployment end date from asset management
                         if deploy_end is data_end_file:
@@ -119,17 +123,22 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_name, user):
                             file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
                             if cnf is len(file_list)-1: # last file, check against deployment end date from asset management
-                                if deploy_end is data_end_file:
-                                    pass
-                                else:
-                                    newline = (stream,deployment,data_end_file,deploy_end,'','NOT_AVAILABLE','','check: data end does not equal deployment end date',user)
+
+                                if deploy_end == 'None':
+                                    newline = (stream,deployment,data_end_file,deploy_end,'','','','check: no deployment end date in asset management',user)
                                     file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                                else:
+                                    if deploy_end is data_end_file:
+                                        pass
+                                    else:
+                                        newline = (stream,deployment,data_end_file,deploy_end,'','NOT_AVAILABLE','','check: data end does not equal deployment end date',user)
+                                        file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
                         g1 = gap_end
-                        file_end = data_end_file
+                        #file_end = data_end_file
                         cnt = cnt + 1
 
-                    cnf = cnf + 1
+                cnf = cnf + 1
 
 
 def main(dataset, save_dir, user):
@@ -167,7 +176,7 @@ def main(dataset, save_dir, user):
 
 
 if __name__ == '__main__':
-    dataset = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test/CE07SHSM-RID26-04-VELPTA000__recovered_host-velpt_ab_dcl_instrument_recovered__requested-20170327T193853.json'
+    dataset = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test/CE04OSBP-LJ01C-06-CTDBPO108__streamed-ctdbp_no_sample__requested-20170322T160522.json'
     annotations_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test'
     user = 'lori'
     main(dataset, annotations_dir, user)

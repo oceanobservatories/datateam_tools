@@ -23,13 +23,41 @@ def make_dir(save_dir):
     except OSError:
         pass
 
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split('(\d+)', text) ]
+
+
 def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user):
-    for d in data['deployments']:
+    deployment_list = data['deployments']
+    deployment_list_sorted = deployment_list.keys()
+    deployment_list_sorted.sort(key = natural_keys)  # sorts the deployments
+
+    deploy_cnt = 0
+    for d in deployment_list_sorted:
         deployment = d
         s = stream_name
-        for x in data['deployments'][d]['streams'][s]['files']:
-            data_begin = data['deployments'][d]['streams'][s]['files'][x]['data_start']
-            data_end = data['deployments'][d]['streams'][s]['files'][x]['data_end']
+
+        deployment_data_begin = data['deployments'][d]['data_times']['start'] # first data file start date
+        deployment_data_end = data['deployments'][d]['data_times']['end']  # last data file end date
+
+        file_list = data['deployments'][d]['streams'][s]['files']
+        file_list_sorted = file_list.keys()
+        file_list_sorted.sort(key = natural_keys)  # sorts the files
+
+        cnt = 0
+        for x in file_list_sorted:
+            data_begin = data['deployments'][d]['streams'][s]['files'][x]['data_start'] # start date of file
+            data_end = data['deployments'][d]['streams'][s]['files'][x]['data_end'] # end date of file
             vars_not_in_db = data['deployments'][d]['streams'][s]['files'][x]['vars_not_in_db']
             vars_not_in_file = data['deployments'][d]['streams'][s]['files'][x]['vars_not_in_file']
 
@@ -58,89 +86,107 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
             for v in sci_vars:
                 print v
                 parameter = v
-
-                t1 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available']
-                if intern(t1) is intern('True'):
-                    pass
-                else:
-                    print t1
-                    flag = 'NOT_AVAILABLE'
-                    newline = (parameter, deployment, data_begin, data_end, '', flag, '', 'tested availability: ' + t1, user)
+                if deploy_cnt is 0 and cnt is 0:  # print all variables in the file to be used in the timeline plot
+                    newline = (parameter, '', '', '', '', '', '', '', '')
                     parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
-                try:
-                    t2 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['all_nans']
-                    if intern(t2) is intern('False'):
+                t1 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available']
+                if intern(t1) is intern('False'):
+                    pass
+                else:
+                    try:
+                        t2 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['all_nans']
+                        if intern(t2) is intern('False'):
+                            pass
+                        else:
+                            print t2
+                            flag = 'FAILED'
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested all_nans: ' + t2, user)
+                            parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                    except KeyError:
                         pass
-                    else:
-                        print t2
-                        flag = 'FAILED'
-                        newline = (parameter, deployment, data_begin, data_end, '', flag, '', 'tested all_nans: ' + t2, user)
-                        parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                except KeyError:
-                    pass
 
-                try:
-                    t3 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_test']
-                    if intern(t3) is intern('False'):
+                    try:
+                        t3 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_test']
+                        if intern(t3) is intern('False'):
+                            pass
+                        else:
+                            print t3
+                            flag = 'FAILED'
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested fill_test: ' + t3, user)
+                            parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                    except KeyError:
                         pass
-                    else:
-                        print t3
-                        flag = 'FAILED'
-                        newline = (parameter, deployment, data_begin, data_end, '', flag, '', 'tested fill_test: ' + t3, user)
-                        parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                except KeyError:
-                    pass
 
-                try:
-                    t4 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_value']
-                    if t4 == -9999999.0:
+                    try:
+                        t4 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_value']
+                        if t4 == -9999999.0:
+                            pass
+                        else:
+                            if cnt is not 0:
+                                if var_t4 is t4:
+                                    pass
+                                else:
+                                    flag = 'Fill Value'
+                                    newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user)
+                                    parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                            else:
+                                flag = 'Fill Value'
+                                newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'applies to all files in 1 deployment. # of files: ' + str(len(file_list_sorted)),
+                                           flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user)
+                                parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                        var_t4 = t4
+                    except KeyError:
                         pass
-                    else:
-                        print t4
-                        flag = 'Fill Value'
-                        newline = (parameter, deployment, data_begin, data_end, '', flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user)
-                        parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                except KeyError:
-                    pass
 
-                try:
-                    global_max = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_max']
-                    global_min = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_min']
-                    newline = (parameter, deployment, data_begin, data_end, '', 'Global Range Values', '', 'global min = ' + str(global_min) + ' global_max = ' + str(global_max), user)
-                    parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                except KeyError:
-                    pass
+                    try:
+                        global_max = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_max']
+                        global_min = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_min']
+                        if cnt is not 0:
+                            if var_max is global_max and var_min is global_min:
+                                pass
+                        else:
+                            newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'applies to all files in 1 deployment. # of files: ' + str(len(file_list_sorted)),
+                                       'Global Range Values', '', 'global min = ' + str(global_min) + ' global_max = ' + str(global_max), user)
+                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                        var_max = global_max
+                        var_min = global_min
 
-                try:
-                    t5 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_range_test']
-                    if not t5:
+                    except KeyError:
                         pass
-                    else:
-                        newline = (parameter, deployment, data_begin, data_end, '', 'Global Range QC Test', '', 'check: test triggered', user)
-                        parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                except KeyError:
-                    pass
 
-                try:
-                    t6 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_spiketest']
-                    if not t6:
+                    try:
+                        t5 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_range_test']
+                        if not t5:
+                            pass
+                        else:
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Global Range QC Test', '', 'check: test triggered', user)
+                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                    except KeyError:
                         pass
-                    else:
-                        newline = (parameter, deployment, data_begin, data_end, '', 'Spike QC Test', '', 'check: test triggered', user)
-                        parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                except KeyError:
-                    pass
 
-                try:
-                    t7 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_stuckvaluetest']
-                    if not t7:
+                    try:
+                        t6 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_spiketest']
+                        if not t6:
+                            pass
+                        else:
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Spike QC Test', '', 'check: test triggered', user)
+                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                    except KeyError:
                         pass
-                    else:
-                        newline = (parameter, deployment, data_begin, data_end, '', 'Stuck Value QC Test', '', 'check: test triggered', user)
-                        parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                except KeyError:
-                    pass
+
+                    try:
+                        t7 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_stuckvaluetest']
+                        if not t7:
+                            pass
+                        else:
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Stuck Value QC Test', '', 'check: test triggered', user)
+                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                    except KeyError:
+                        pass
+
+            cnt = cnt + 1
+        deploy_cnt = deploy_cnt + 1
 
 
 def main(dataset, save_dir, user):
@@ -171,7 +217,7 @@ def main(dataset, save_dir, user):
         writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Status', 'Redmine#', 'Todo', 'reviewed_by'])
         with open(parameter_issues, 'a') as parameter_issues_csv:  # stream-level annotation .csv
             writer = csv.writer(parameter_issues_csv)
-            writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Test', 'Redmine#', 'Todo', 'reviewed_by'])
+            writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Notes', 'Test', 'Redmine#', 'Todo', 'reviewed_by'])
 
             annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user)
 
@@ -179,7 +225,7 @@ def main(dataset, save_dir, user):
 if __name__ == '__main__':
 #    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/GP03FLMA-RIM01-02-CTDMOG040__telemetered-ctdmo_ghqr_sio_mule_instrument__requested-20170315T142924.json'
 #    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
-    dataset = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test/GI01SUMO-SBD11-06-METBKA000__recovered_host-metbk_a_dcl_instrument_recovered__requested-20170227T202508.json'
+    dataset = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test/CE04OSBP-LJ01C-06-CTDBPO108__streamed-ctdbp_no_sample__requested-20170322T160522.json'
     annotations_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test'
     user = 'leila'
     main(dataset, annotations_dir, user)
