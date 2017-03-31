@@ -54,6 +54,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
         file_list_sorted = file_list.keys()
         file_list_sorted.sort(key = natural_keys)  # sorts the files
 
+
         cnt = 0
         for x in file_list_sorted:
             data_begin = data['deployments'][d]['streams'][s]['files'][x]['data_start'] # start date of file
@@ -118,39 +119,29 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                     except KeyError:
                         pass
 
+
                     try:
                         t4 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_value']
-                        if t4 == -9999999.0:
-                            pass
-                        else:
-                            if cnt is not 0:
-                                if var_t4 is t4:
-                                    pass
-                                else:
-                                    flag = 'Fill Value'
-                                    newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user)
-                                    parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                        if cnt is 0:
+                            if t4 == -9999999.0:
+                                pass
+
                             else:
                                 flag = 'Fill Value'
-                                newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'applies to all files in 1 deployment. # of files: ' + str(len(file_list_sorted)),
+                                newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'extracted from 1st file of '+  str(len(file_list_sorted))+ ' files',
                                            flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user)
                                 parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                        var_t4 = t4
+
                     except KeyError:
                         pass
 
                     try:
                         global_max = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_max']
                         global_min = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_min']
-                        if cnt is not 0:
-                            if var_max is global_max and var_min is global_min:
-                                pass
-                        else:
-                            newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'applies to all files in 1 deployment. # of files: ' + str(len(file_list_sorted)),
+                        if cnt is 0:
+                            newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'extracted from 1st file of '+  str(len(file_list_sorted))+ ' files',
                                        'Global Range Values', '', 'global min = ' + str(global_min) + ' global_max = ' + str(global_max), user)
                             parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                        var_max = global_max
-                        var_min = global_min
 
                     except KeyError:
                         pass
@@ -186,6 +177,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         pass
 
             cnt = cnt + 1
+
         deploy_cnt = deploy_cnt + 1
 
 
@@ -225,7 +217,7 @@ def main(dataset, save_dir, user):
 if __name__ == '__main__':
 #    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/GP03FLMA-RIM01-02-CTDMOG040__telemetered-ctdmo_ghqr_sio_mule_instrument__requested-20170315T142924.json'
 #    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
-    dataset = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test/CE04OSBP-LJ01C-06-CTDBPO108__streamed-ctdbp_no_sample__requested-20170322T160522.json'
-    annotations_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/tests/CE04OSPS-SF01B-2A-CTDPFA107__streamed-ctdpf_sbe43_sample__requested-20170322T221944.json'
+    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/tests'
     user = 'leila'
     main(dataset, annotations_dir, user)
