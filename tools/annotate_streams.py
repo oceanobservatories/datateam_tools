@@ -41,7 +41,7 @@ def natural_keys(text):
     return [ atoi(c) for c in re.split('(\d+)', text) ]
 
 
-def check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile):
+def check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user):
     '''
     checks for an end date from asset management (param: deploy_end). if there is a deployment end date in asset management,
     checks if the end date from the data file (param: data_end) matches the deployment end date
@@ -145,7 +145,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                 newline = (s,d,data_begin,data_end,'','NOT_EVALUATED','','check: evaluate parameters',user)
                 outfile.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
-                check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile)
+                check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user)
 
             cnt = 0
             for g in gap_dict: # if there are gaps
