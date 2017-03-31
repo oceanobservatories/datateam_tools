@@ -57,7 +57,7 @@ def check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues
             outfile.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
 
-def annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile):
+def annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile, user):
     '''
     stream annotations for only one gap in a deployment
     '''
@@ -72,7 +72,7 @@ def annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile):
     outfile.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
 
-def gaps_between_files(data, file_list_sorted, d, s, stream_csv_issues):
+def gaps_between_files(data, file_list_sorted, d, s, stream_csv_issues, user):
     '''
     check for gaps between deployment files of >1 minute
     '''
@@ -132,7 +132,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
             gap_dict = dict(time_gaps = [])
 
             # check for gaps between deployment files of >1 minute
-            gaps_between_files(data, file_list_sorted, d, s, stream_csv_issues)
+            gaps_between_files(data, file_list_sorted, d, s, stream_csv_issues, user)
 
             # read data file information
             for x in file_list_sorted:
@@ -153,8 +153,8 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                 gap_end = g[1]
 
                 if len(gap_dict) == 1: # stream annotations if there is only 1 gap
-                    annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile)
-                    check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile)
+                    annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile, user)
+                    check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user)
 
                 else:  # stream annotations if there are multiple gaps
                     if cnt == 0: # first gap
@@ -174,7 +174,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                             newline = (s,d,g_end_prev,data_end,'','NOT_EVALUATED','','check: evaluate parameters',user)
                             outfile.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
-                            check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile)
+                            check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user)
 
                 g_end_prev = gap_end
                 cnt = cnt + 1
