@@ -98,8 +98,20 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                 if not gaps:
                     if cnf is 0:
                         var_gap_end = data_begin
+                        if cnf is len(
+                                file_list) - 1:  # last file, check against deployment end date from asset management
+                            newline = (stream, deployment, var_gap_end, data_end_file, '', 'NOT_EVALUATED', '',
+                                       'check: evaluate parameters', user)
+                            file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                            if deploy_end is data_end_file:
+                                pass
+                            else:
+                                newline = (stream, deployment, data_end_file, deploy_end, '', 'NOT_AVAILABLE', '',
+                                           'check: data end does not equal deployment end date', user)
+                                file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
                     else: # combine annotations if the gap between files is < 1 day
                         if timedelta < pd.Timedelta(days=1):
+                            print cnf, var_gap_end
                             if cnf is len(file_list) - 1:  # last file, check against deployment end date from asset management
                                 newline = (stream, deployment, var_gap_end, data_end_file, '', 'NOT_EVALUATED', '',
                                            'check: evaluate parameters', user)
@@ -189,7 +201,7 @@ def main(dataset, save_dir, user):
 
 
 if __name__ == '__main__':
-    dataset = '/Users/leila/Documents/OOI_GitHub_repo/dvp/CE04OSBP-LJ01C-06-CTDBPO108__streamed-ctdbp_no_sample__requested-20170322T160522.json'
-    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/dvp'
-    user = 'lori'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/CE04OSPS-SF01B-2A-CTDPFA107__streamed-ctdpf_sbe43_sample__requested-20170322T221944.json'
+    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
+    user = 'leila'
     main(dataset, annotations_dir, user)
