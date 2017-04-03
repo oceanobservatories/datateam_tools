@@ -181,7 +181,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                         outfile.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
                         if cnt is len(gap_dict)-1: # last gap
-                            newline = (s,d,g_end_prev,data_end,'','NOT_EVALUATED','','check: evaluate parameters',user)
+                            newline = (s,d,gap_end,data_end,'','NOT_EVALUATED','','check: evaluate parameters',user)
                             outfile.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
                             check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user)
@@ -229,7 +229,7 @@ def main(dataset, save_dir, user):
 
 
 if __name__ == '__main__':
-    dataset = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test/CE04OSBP-LJ01C-06-CTDBPO108__streamed-ctdbp_no_sample__requested-20170322T160522.json'
-    annotations_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/test'
-    user = 'lori'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/CE04OSPS-SF01B-2A-CTDPFA107__streamed-ctdpf_sbe43_sample__requested-20170322T221944.json'
+    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/'
+    user = 'leila'
     main(dataset, annotations_dir, user)
