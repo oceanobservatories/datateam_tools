@@ -143,17 +143,18 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                         file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
                         if cnf is len(file_list)-1: # last file, check against deployment end date from asset management
-                            newline = (stream, deployment, gap_end, data_end_file, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user)
-                            file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                            if deploy_end == 'None':
-                                newline = (stream,deployment,deploy_begin,deploy_end,'','','','check: no deployment end date in asset management',user)
-                                stream_csv_issues.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
-                            else:
-                                if deploy_end is data_end_file:
-                                    pass
+                            if cnt is not 0:
+                                newline = (stream, deployment, gap_end, data_end_file, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user)
+                                file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                                if deploy_end == 'None':
+                                    newline = (stream,deployment,deploy_begin,deploy_end,'','','','check: no deployment end date in asset management',user)
+                                    stream_csv_issues.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
                                 else:
-                                    newline = (stream,deployment,data_end_file,deploy_end,'','NOT_AVAILABLE','','check: data end does not equal deployment end date',user)
-                                    file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                                    if deploy_end is data_end_file:
+                                        pass
+                                    else:
+                                        newline = (stream,deployment,data_end_file,deploy_end,'','NOT_AVAILABLE','','check: data end does not equal deployment end date',user)
+                                        file.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
 
                         var_gap_end = gap_end
                         cnt = cnt + 1
