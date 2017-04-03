@@ -15,6 +15,8 @@ import csv
 import os
 from datetime import datetime as dt
 import re
+import pandas as pd
+
 
 
 def make_dir(save_dir):
@@ -48,7 +50,9 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
         s = stream_name
 
         deployment_data_begin = data['deployments'][d]['data_times']['start'] # first data file start date
+        deployment_data_begin = pd.to_datetime(deployment_data_begin).strftime('%Y-%m-%dT%H:%M:%SZ')
         deployment_data_end = data['deployments'][d]['data_times']['end']  # last data file end date
+        deployment_data_end = pd.to_datetime(deployment_data_end).strftime('%Y-%m-%dT%H:%M:%SZ')
 
         file_list = data['deployments'][d]['streams'][s]['files']
         file_list_sorted = file_list.keys()
@@ -58,7 +62,9 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
         cnt = 0
         for x in file_list_sorted:
             data_begin = data['deployments'][d]['streams'][s]['files'][x]['data_start'] # start date of file
+            data_begin = pd.to_datetime(data_begin).strftime('%Y-%m-%dT%H:%M:%SZ')
             data_end = data['deployments'][d]['streams'][s]['files'][x]['data_end'] # end date of file
+            data_end = pd.to_datetime(data_end).strftime('%Y-%m-%dT%H:%M:%SZ')
             vars_not_in_db = data['deployments'][d]['streams'][s]['files'][x]['vars_not_in_db']
             vars_not_in_file = data['deployments'][d]['streams'][s]['files'][x]['vars_not_in_file']
 
@@ -217,7 +223,7 @@ def main(dataset, save_dir, user):
 if __name__ == '__main__':
 #    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/GP03FLMA-RIM01-02-CTDMOG040__telemetered-ctdmo_ghqr_sio_mule_instrument__requested-20170315T142924.json'
 #    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
-    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/tests/CE04OSPS-SF01B-2A-CTDPFA107__streamed-ctdpf_sbe43_sample__requested-20170322T221944.json'
-    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/tests'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/CE04OSPS-SF01B-2A-CTDPFA107__streamed-ctdpf_sbe43_sample__requested-20170322T221944.json'
+    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
     user = 'leila'
     main(dataset, annotations_dir, user)
