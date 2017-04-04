@@ -203,7 +203,7 @@ def main(dataset, save_dir, user):
     refdes_dir = os.path.join(site_dir, ref_des)
     make_dir(refdes_dir) # make the ref des directory
 
-    drafts_dir = os.path.join(refdes_dir, 'drafts')
+    drafts_dir = os.path.join(refdes_dir, 'internal_drafts')
     make_dir(drafts_dir)
 
     dm_stream = dataset.split('/')[-1].split('__')[1]
