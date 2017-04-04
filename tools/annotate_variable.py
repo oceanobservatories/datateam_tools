@@ -40,6 +40,7 @@ def natural_keys(text):
 
 
 def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user):
+    format = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'
     deployment_list = data['deployments']
     deployment_list_sorted = deployment_list.keys()
     deployment_list_sorted.sort(key = natural_keys)  # sorts the deployments
@@ -72,8 +73,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                 pass
             else:
                 for i in vars_not_in_db:
-                    newline = (i, deployment, data_begin, data_end, '', 'vars_not_in_db', '', 'check: variable listed in file but not in database', user)
-                    parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                    newline = (i, deployment, data_begin, data_end, '', 'vars_not_in_db', '', 'check: variable listed in file but not in database', user, '')
+                    parameter_issues_csv.write(format % newline)
 
             if not vars_not_in_file:
                 pass
@@ -82,8 +83,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                     if ii == 'time':  # time will never be listed as a variable in the files
                         pass
                     else:
-                        newline = (ii, deployment, data_begin, data_end, '', 'NOT_AVAILABLE', '', 'check: variable listed in database but not in file', user)
-                        parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                        newline = (ii, deployment, data_begin, data_end, '', 'NOT_AVAILABLE', '', 'check: variable listed in database but not in file', user, '')
+                        parameter_csv.write(format % newline)
 
             vars = data['deployments'][d]['streams'][s]['files'][x]['variables']
             misc = ['time']
@@ -94,8 +95,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                 print v
                 parameter = v
                 if deploy_cnt is 0 and cnt is 0:  # print all variables in the file to be used in the timeline plot
-                    newline = (parameter, '', '', '', '', '', '', '', '')
-                    parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                    newline = (parameter, '', '', '', '', '', '', '', '', '')
+                    parameter_csv.write(format % newline)
 
                 t1 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available']
                 if intern(t1) is intern('False'):
@@ -108,8 +109,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         else:
                             print t2
                             flag = 'FAILED'
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested all_nans: ' + t2, user)
-                            parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested all_nans: ' + t2, user, '')
+                            parameter_csv.write(format % newline)
                     except KeyError:
                         pass
 
@@ -120,8 +121,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         else:
                             print t3
                             flag = 'FAILED'
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested fill_test: ' + t3, user)
-                            parameter_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested fill_test: ' + t3, user, '')
+                            parameter_csv.write(format % newline)
                     except KeyError:
                         pass
 
@@ -135,8 +136,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                             else:
                                 flag = 'Fill Value'
                                 newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'extracted from 1st file of '+  str(len(file_list_sorted))+ ' files',
-                                           flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user)
-                                parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                                           flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user, '')
+                                parameter_issues_csv.write(format % newline)
 
                     except KeyError:
                         pass
@@ -146,8 +147,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         global_min = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_min']
                         if cnt is 0:
                             newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'extracted from 1st file of '+  str(len(file_list_sorted))+ ' files',
-                                       'Global Range Values', '', 'global min = ' + str(global_min) + ' global_max = ' + str(global_max), user)
-                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                                       'Global Range Values', '', 'global min = ' + str(global_min) + ' global_max = ' + str(global_max), user, '')
+                            parameter_issues_csv.write(format % newline)
 
                     except KeyError:
                         pass
@@ -157,8 +158,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         if not t5:
                             pass
                         else:
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Global Range QC Test', '', 'check: test triggered', user)
-                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Global Range QC Test', '', 'check: test triggered', user, '')
+                            parameter_issues_csv.write(format % newline)
                     except KeyError:
                         pass
 
@@ -167,8 +168,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         if not t6:
                             pass
                         else:
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Spike QC Test', '', 'check: test triggered', user)
-                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Spike QC Test', '', 'check: test triggered', user, '')
+                            parameter_issues_csv.write(format % newline)
                     except KeyError:
                         pass
 
@@ -177,8 +178,8 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         if not t7:
                             pass
                         else:
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Stuck Value QC Test', '', 'check: test triggered', user)
-                            parameter_issues_csv.write('%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % newline)
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Stuck Value QC Test', '', 'check: test triggered', user, '')
+                            parameter_issues_csv.write(format % newline)
                     except KeyError:
                         pass
 
@@ -212,10 +213,10 @@ def main(dataset, save_dir, user):
 
     with open(parameter_file, 'a') as parameter_csv:  # stream-level annotation .csv
         writer = csv.writer(parameter_csv)
-        writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Status', 'Redmine#', 'Todo', 'reviewed_by'])
+        writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Status', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
         with open(parameter_issues, 'a') as parameter_issues_csv:  # stream-level annotation .csv
             writer = csv.writer(parameter_issues_csv)
-            writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Notes', 'Test', 'Redmine#', 'Todo', 'reviewed_by'])
+            writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Notes', 'Test', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
 
             annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user)
 
