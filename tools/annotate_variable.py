@@ -87,7 +87,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         parameter_csv.write(format % newline)
 
             vars = data['deployments'][d]['streams'][s]['files'][x]['variables']
-            misc = ['time']
+            misc = ['time','volt']
             reg_ex = re.compile('|'.join(misc))
             sci_vars = [nn for nn in vars if not reg_ex.search(nn)]
 

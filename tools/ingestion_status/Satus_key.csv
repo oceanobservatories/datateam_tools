@@ -1,0 +1,8 @@
+Instrument Deployment Status,Instrument Operational Status,Data Delivery Status,Data Delivery Color,Data Delivery Labels
+Not Deployed,NA,NA,Black,Not Deployed
+Deployed,Failed,NA,magenta,Unavailable
+Deployed,Operational,Data delivered to CI ,green,Available
+Deployed,Operational,"Data not to be delivered „ Not telemetered, Not recorded, or Lost in transmission",cyan,Not expected
+Deployed,Operational,Data to be delivered to CI „ awaiting Driver/Parser dvp.,red,Pending
+Deployed,Operational,Data to be delivered to CI „ awaiting MIO upload to CI,yellow,Missing
+Deployed,Operational,Data to be delivered to CI „ awaiting instrument recovery,blue,Expected
