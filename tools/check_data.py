@@ -215,189 +215,192 @@ def main(url, save_dir):
     data = OrderedDict(deployments=OrderedDict())
     for dataset in datasets:
         filename = os.path.basename(dataset)
-        logging.info('Processing {}'.format(str(dataset)))
-        try:
-            print 'Opening file: {}'.format(dataset)
-            with xr.open_dataset(dataset, mask_and_scale=False) as ds:
-                ref_des = '{}-{}-{}'.format(ds.subsite, ds.node, ds.sensor)
-                deployment = np.unique(ds['deployment'].data)[0]
+        if 'ENG000000' not in filename:  # script will not analyze glider ENG data files
+            logging.info('Processing {}'.format(str(dataset)))
+            try:
+                print 'Opening file: {}'.format(dataset)
+                with xr.open_dataset(dataset, mask_and_scale=False) as ds:
+                    ref_des = '{}-{}-{}'.format(ds.subsite, ds.node, ds.sensor)
+                    deployment = np.unique(ds['deployment'].data)[0]
 
-                qc_data = request_qc_json(ref_des)  # grab data from the qc database
-                ref_des_dict = get_parameter_list(qc_data)
-                deploy_info = get_deployment_information(qc_data, deployment)
-                data_start = ds.time_coverage_start + 'Z'
-                data_end = ds.time_coverage_end + 'Z'
-
-
-                # Deployment Variables
-                deploy_start = str(deploy_info['start_date'] + 'Z')
-                if deploy_info['stop_date']:
-                    deploy_stop = str(deploy_info['stop_date'] + 'Z')
-                else:
-                    deploy_stop = str(deploy_info['stop_date'])
-                deploy_lon = deploy_info['longitude']
-                deploy_lat = deploy_info['latitude']
-
-                # Add reference designator to dictionary
-                try:
-                    data['ref_des']
-                except KeyError:
-                    data['ref_des'] = ref_des
-
-                deployment = 'D0000{}'.format(deployment)
-
-                deployments = data['deployments'].keys()
-
-                # Add deployment to dictionary and initialize stream sub dictionary
-                if not deployment in deployments:
-                    data['deployments'][deployment] = OrderedDict(start=deploy_start,
-                                                           end=deploy_stop,
-                                                           lon=deploy_lon,
-                                                           lat=deploy_lat,
-                                                           streams=OrderedDict(),
-                                                           data_times = dict(start=[], end=[]))
-
-                # Add data start and stop times to a data_times array. When the files are all processed, it checks data vs deployment times
-                if ds.stream == splitter[-1]:
-                    data['deployments'][deployment]['data_times']['start'].append(data_start)
-                    data['deployments'][deployment]['data_times']['end'].append(data_end)
+                    qc_data = request_qc_json(ref_des)  # grab data from the qc database
+                    ref_des_dict = get_parameter_list(qc_data)
+                    deploy_info = get_deployment_information(qc_data, deployment)
+                    data_start = ds.time_coverage_start + 'Z'
+                    data_end = ds.time_coverage_end + 'Z'
 
 
-                streams = data['deployments'][deployment]['streams'].keys()
-
-                # Add stream to subdictionary inside deployment
-                if not ds.stream in streams:
-                    data['deployments'][deployment]['streams'][ds.stream] = OrderedDict(files=OrderedDict())
-
-                qc_df = parse_qc(ds)
-
-                qc_vars = [x for x in qc_df.keys() if not 'test' in x]
-                qc_df = qc_df.reset_index()
-                variables = ds.data_vars.keys()
-                variables = eliminate_common_variables(variables)
-                variables = [x for x in variables if not 'qc' in x] # remove qc variables, because we don't care about them
-
-                # Gap test. Get a list of gaps
-                gap_list = test_gaps(qc_df)
-
-                # Deployment Distance
-                data_lat = np.unique(ds['lat'])[0]
-                data_lon = np.unique(ds['lon'])[0]
-                dist_calc = distance((deploy_lat, deploy_lon), (data_lat, data_lon))
-
-                # Unique times
-                time = ds['time']
-                len_time = time.__len__()
-                len_time_unique = np.unique(time).__len__()
-                if len_time == len_time_unique:
-                    time_test = True
-                else:
-                    time_test = False
-                db_list = ref_des_dict[ds.stream]
-
-                [_, unmatch1] = compare_lists(db_list, variables)
-                [_, unmatch2] = compare_lists(variables, db_list)
-
-                filenames = data['deployments'][deployment]['streams'][ds.stream]['files']
-
-                if not filename in filenames:
-                    data['deployments'][deployment]['streams'][ds.stream]['files'][filename] = OrderedDict(data_start=data_start,
-                                                                                                    data_end=data_end,
-                                                                                                    time_gaps=gap_list,
-                                                                                                    lon=data_lon,
-                                                                                                    lat=data_lat,
-                                                                                                    distance_from_deploy_km=dist_calc,
-                                                                                                    unique_times=str(time_test),
-                                                                                                    variables = OrderedDict(),
-                                                                                                    vars_not_in_file=unmatch1,
-                                                                                                    vars_not_in_db=unmatch2)
-                else:
-                    print filename + ' already in dictionary. Skipping'
-
-                for v in variables:
-                    # print v
-                    # Availability test
-                    if v in db_list:
-                        available = True
+                    # Deployment Variables
+                    deploy_start = str(deploy_info['start_date'] + 'Z')
+                    if deploy_info['stop_date']:
+                        deploy_stop = str(deploy_info['stop_date'] + 'Z')
                     else:
-                        available = False
+                        deploy_stop = str(deploy_info['stop_date'])
+                    deploy_lon = deploy_info['longitude']
+                    deploy_lat = deploy_info['latitude']
 
-                    if ds[v].dtype.kind == 'S' \
-                            or ds[v].dtype == np.dtype('datetime64[ns]') \
-                            or 'time' in v:
-                        dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
+                    # Add reference designator to dictionary
+                    try:
+                        data['ref_des']
+                    except KeyError:
+                        data['ref_des'] = ref_des
 
-                        if not v in dict_vars:
-                            data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available = str(available))
-                        continue
+                    deployment = 'D0000{}'.format(deployment)
+
+                    deployments = data['deployments'].keys()
+
+                    # Add deployment to dictionary and initialize stream sub dictionary
+                    if not deployment in deployments:
+                        data['deployments'][deployment] = OrderedDict(start=deploy_start,
+                                                               end=deploy_stop,
+                                                               lon=deploy_lon,
+                                                               lat=deploy_lat,
+                                                               streams=OrderedDict(),
+                                                               data_times = dict(start=[], end=[]))
+
+                    # Add data start and stop times to a data_times array. When the files are all processed, it checks data vs deployment times
+                    if ds.stream == splitter[-1]:
+                        data['deployments'][deployment]['data_times']['start'].append(data_start)
+                        data['deployments'][deployment]['data_times']['end'].append(data_end)
+
+
+                    streams = data['deployments'][deployment]['streams'].keys()
+
+                    # Add stream to subdictionary inside deployment
+                    if not ds.stream in streams:
+                        data['deployments'][deployment]['streams'][ds.stream] = OrderedDict(files=OrderedDict())
+
+                    qc_df = parse_qc(ds)
+
+                    qc_vars = [x for x in qc_df.keys() if not 'test' in x]
+                    qc_df = qc_df.reset_index()
+                    variables = ds.data_vars.keys()
+                    variables = eliminate_common_variables(variables)
+                    variables = [x for x in variables if not 'qc' in x] # remove qc variables, because we don't care about them
+
+                    # Gap test. Get a list of gaps
+                    gap_list = test_gaps(qc_df)
+
+                    # Deployment Distance
+                    data_lat = np.unique(ds['lat'])[0]
+                    data_lon = np.unique(ds['lon'])[0]
+                    dist_calc = distance((deploy_lat, deploy_lon), (data_lat, data_lon))
+
+                    # Unique times
+                    time = ds['time']
+                    len_time = time.__len__()
+                    len_time_unique = np.unique(time).__len__()
+                    if len_time == len_time_unique:
+                        time_test = True
                     else:
-                        var_data = ds[v].data
+                        time_test = False
+                    db_list = ref_des_dict[ds.stream]
 
-                        # NaN test. Make sure the parameter is not all NaNs
-                        nan_test = np.all(np.isnan(var_data))
-                        if not nan_test or available is False:
-                            # Global range test
-                            [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
-                            try:
-                                ind = reject_outliers(var_data, 3)
-                                min = float(np.nanmin(var_data[ind]))
-                                max = float(np.nanmax(var_data[ind]))
-                            except (TypeError, ValueError):
-                                min = None
-                                max = None
+                    [_, unmatch1] = compare_lists(db_list, variables)
+                    [_, unmatch2] = compare_lists(variables, db_list)
 
-                            # Fill Value test
-                            try:
-                                fill_value = float(ds[v]._FillValue)
-                                fill_test = np.any(var_data == ds[v]._FillValue)
-                            except AttributeError:
-                                fill_value = None
-                                fill_test = None
+                    filenames = data['deployments'][deployment]['streams'][ds.stream]['files']
 
-                            dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
-                            if not v in dict_vars:
-                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available),
-                                                                                                                                all_nans=str(nan_test),
-                                                                                                                                data_min = min,
-                                                                                                                                data_max = max,
-                                                                                                                                global_min=g_min,
-                                                                                                                                global_max=g_max,
-                                                                                                                                fill_test=str(fill_test),
-                                                                                                                                fill_value=fill_value)
+                    if not filename in filenames:
+                        data['deployments'][deployment]['streams'][ds.stream]['files'][filename] = OrderedDict(data_start=data_start,
+                                                                                                        data_end=data_end,
+                                                                                                        time_gaps=gap_list,
+                                                                                                        lon=data_lon,
+                                                                                                        lat=data_lat,
+                                                                                                        distance_from_deploy_km=dist_calc,
+                                                                                                        unique_times=str(time_test),
+                                                                                                        variables = OrderedDict(),
+                                                                                                        vars_not_in_file=unmatch1,
+                                                                                                        vars_not_in_db=unmatch2)
+                    else:
+                        print filename + ' already in dictionary. Skipping'
 
-                            if v in qc_vars:
-                                temp_list = []
-                                tests = ['global_range_test', 'dataqc_stuckvaluetest', 'dataqc_spiketest']
-                                for test in tests:
-                                    var = '{}_{}'.format(v, test)
-                                    group_var = 'group_{}'.format(var)
-                                    try:
-                                        qc_df[group_var] = qc_df[var].diff().cumsum().fillna(0)
-                                    except KeyError as e:
-                                        # logging.warn('Error: P')
-                                        temp_list.append(['Did not run'])
-                                        continue
-                                    tdf = qc_df.groupby([group_var, var])['time'].agg(['first', 'last'])
-                                    tdf = tdf.reset_index().drop([group_var], axis=1)
-                                    tdf = tdf.loc[tdf[var] ==  False].drop(var, axis=1)
-                                    tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ'))
-                                    tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ'))
-                                    if tdf.empty:
-                                        data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v][test] = []
-                                    else:
-                                        data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v][test] = map(list, tdf.values)
-
-                            else:
-                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['global_range_test'] = None
-                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['dataqc_stuckvaluetest'] = None
-                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['dataqc_spiketest'] = None
+                    for v in variables:
+                        # print v
+                        # Availability test
+                        if v in db_list:
+                            available = True
                         else:
+                            available = False
+
+                        if ds[v].dtype.kind == 'S' \
+                                or ds[v].dtype == np.dtype('datetime64[ns]') \
+                                or 'time' in v:
                             dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
+
                             if not v in dict_vars:
-                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available), all_nans=str(nan_test))
-        except Exception as e:
-            logging.warn('Error: Processing failed due to {}.'.format(str(e)))
-            raise
+                                data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available = str(available))
+                            continue
+                        else:
+                            var_data = ds[v].data
+
+                            # NaN test. Make sure the parameter is not all NaNs
+                            nan_test = np.all(np.isnan(var_data))
+                            if not nan_test or available is False:
+                                # Global range test
+                                [g_min, g_max] = get_global_ranges(ds.subsite, ds.node, ds.sensor, v)
+                                try:
+                                    ind = reject_outliers(var_data, 3)
+                                    min = float(np.nanmin(var_data[ind]))
+                                    max = float(np.nanmax(var_data[ind]))
+                                except (TypeError, ValueError):
+                                    min = None
+                                    max = None
+
+                                # Fill Value test
+                                try:
+                                    fill_value = float(ds[v]._FillValue)
+                                    fill_test = np.any(var_data == ds[v]._FillValue)
+                                except AttributeError:
+                                    fill_value = None
+                                    fill_test = None
+
+                                dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
+                                if not v in dict_vars:
+                                    data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available),
+                                                                                                                                    all_nans=str(nan_test),
+                                                                                                                                    data_min = min,
+                                                                                                                                    data_max = max,
+                                                                                                                                    global_min=g_min,
+                                                                                                                                    global_max=g_max,
+                                                                                                                                    fill_test=str(fill_test),
+                                                                                                                                    fill_value=fill_value)
+
+                                if v in qc_vars:
+                                    temp_list = []
+                                    tests = ['global_range_test', 'dataqc_stuckvaluetest', 'dataqc_spiketest']
+                                    for test in tests:
+                                        var = '{}_{}'.format(v, test)
+                                        group_var = 'group_{}'.format(var)
+                                        try:
+                                            qc_df[group_var] = qc_df[var].diff().cumsum().fillna(0)
+                                        except KeyError as e:
+                                            # logging.warn('Error: P')
+                                            temp_list.append(['Did not run'])
+                                            continue
+                                        tdf = qc_df.groupby([group_var, var])['time'].agg(['first', 'last'])
+                                        tdf = tdf.reset_index().drop([group_var], axis=1)
+                                        tdf = tdf.loc[tdf[var] ==  False].drop(var, axis=1)
+                                        tdf['first'] = tdf['first'].apply(lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ'))
+                                        tdf['last'] = tdf['last'].apply(lambda x: x.strftime('%Y-%m-%dT%H:%M:%SZ'))
+                                        if tdf.empty:
+                                            data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v][test] = []
+                                        else:
+                                            data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v][test] = map(list, tdf.values)
+
+                                else:
+                                    data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['global_range_test'] = None
+                                    data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['dataqc_stuckvaluetest'] = None
+                                    data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v]['dataqc_spiketest'] = None
+                            else:
+                                dict_vars = data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'].keys()
+                                if not v in dict_vars:
+                                    data['deployments'][deployment]['streams'][ds.stream]['files'][filename]['variables'][v] = OrderedDict(available=str(available), all_nans=str(nan_test))
+            except Exception as e:
+                logging.warn('Error: Processing failed due to {}.'.format(str(e)))
+                raise
+        else:
+            pass
 
     deployments = data['deployments'].keys()
     for d in deployments:
