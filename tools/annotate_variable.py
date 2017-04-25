@@ -39,7 +39,7 @@ def natural_keys(text):
     return [ atoi(c) for c in re.split('(\d+)', text) ]
 
 
-def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user):
+def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user, review_date):
     format = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'
     deployment_list = data['deployments']
     deployment_list_sorted = deployment_list.keys()
@@ -73,7 +73,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                 pass
             else:
                 for i in vars_not_in_db:
-                    newline = (i, deployment, data_begin, data_end, '', 'vars_not_in_db', '', 'check: variable listed in file but not in database', user, '')
+                    newline = (i, deployment, data_begin, data_end, '', 'vars_not_in_db', '', 'check: variable listed in file but not in database', user,review_date)
                     parameter_issues_csv.write(format % newline)
 
             if not vars_not_in_file:
@@ -83,7 +83,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                     if ii == 'time':  # time will never be listed as a variable in the files
                         pass
                     else:
-                        newline = (ii, deployment, data_begin, data_end, '', 'NOT_AVAILABLE', '', 'check: variable listed in database but not in file', user, '')
+                        newline = (ii, deployment, data_begin, data_end, '', 'NOT_AVAILABLE', '', 'check: variable listed in database but not in file', user,review_date)
                         parameter_csv.write(format % newline)
 
             vars = data['deployments'][d]['streams'][s]['files'][x]['variables']
@@ -95,7 +95,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                 print v
                 parameter = v
                 if deploy_cnt is 0 and cnt is 0:  # print all variables in the file to be used in the timeline plot
-                    newline = (parameter, '', '', '', '', '', '', '', '', '')
+                    newline = (parameter, '', '', '', '', '', '', '', user,review_date)
                     parameter_csv.write(format % newline)
 
                 t1 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available']
@@ -109,7 +109,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         else:
                             print t2
                             flag = 'FAILED'
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested all_nans: ' + t2, user, '')
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested all_nans: ' + t2, user,review_date)
                             parameter_csv.write(format % newline)
                     except KeyError:
                         pass
@@ -121,7 +121,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         else:
                             print t3
                             flag = 'FAILED'
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested fill_test: ' + t3, user, '')
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested fill_test: ' + t3, user,review_date)
                             parameter_csv.write(format % newline)
                     except KeyError:
                         pass
@@ -136,7 +136,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                             else:
                                 flag = 'Fill Value'
                                 newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'extracted from 1st file of '+  str(len(file_list_sorted))+ ' files',
-                                           flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user, '')
+                                           flag, '', 'tested: ' + str(-9999999.0) + ' found: ' + str(t4) , user,review_date)
                                 parameter_issues_csv.write(format % newline)
 
                     except KeyError:
@@ -147,7 +147,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         global_min = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_min']
                         if cnt is 0:
                             newline = (parameter, deployment, deployment_data_begin, deployment_data_end, 'extracted from 1st file of '+  str(len(file_list_sorted))+ ' files',
-                                       'Global Range Values', '', 'global min = ' + str(global_min) + ' global_max = ' + str(global_max), user, '')
+                                       'Global Range Values', '', 'global min = ' + str(global_min) + ' global_max = ' + str(global_max), user,review_date)
                             parameter_issues_csv.write(format % newline)
 
                     except KeyError:
@@ -158,7 +158,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         if not t5:
                             pass
                         else:
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Global Range QC Test', '', 'check: test triggered', user, '')
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Global Range QC Test', '', 'check: test triggered', user,review_date)
                             parameter_issues_csv.write(format % newline)
                     except KeyError:
                         pass
@@ -168,7 +168,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         if not t6:
                             pass
                         else:
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Spike QC Test', '', 'check: test triggered', user, '')
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Spike QC Test', '', 'check: test triggered', user,review_date)
                             parameter_issues_csv.write(format % newline)
                     except KeyError:
                         pass
@@ -178,7 +178,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         if not t7:
                             pass
                         else:
-                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Stuck Value QC Test', '', 'check: test triggered', user, '')
+                            newline = (parameter, deployment, data_begin, data_end, 'applies to one file', 'Stuck Value QC Test', '', 'check: test triggered', user,review_date)
                             parameter_issues_csv.write(format % newline)
                     except KeyError:
                         pass
@@ -189,6 +189,9 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
 
 
 def main(dataset, save_dir, user):
+    review_date = dataset.split('-')[-1].split('.')[0][0:8]
+    review_date = dt.strptime(review_date, '%Y%m%d').strftime('%Y-%m-%dT%H:%M:%SZ')
+
     file = open(dataset, 'r')
     data = json.load(file)
     ref_des = data.get('ref_des')
@@ -218,7 +221,7 @@ def main(dataset, save_dir, user):
             writer = csv.writer(parameter_issues_csv)
             writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Notes', 'Test', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
 
-            annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user)
+            annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user, review_date)
 
 
 if __name__ == '__main__':
