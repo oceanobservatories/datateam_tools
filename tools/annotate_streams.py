@@ -211,9 +211,9 @@ def main(dataset, save_dir, user):
 
     dm_stream = dataset.split('/')[-1].split('__')[1]
     stream_name = dm_stream.split('-')[-1]
-    stream_file = os.path.join(drafts_dir,dm_stream + '_processed_on_' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
-    stream_file_other = os.path.join(drafts_dir,'collocated_inst_streams_processed_on_' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
-    stream_file_issues = os.path.join(drafts_dir,dm_stream + '_issues_processed_on_' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
+    stream_file = os.path.join(drafts_dir,dm_stream + '-processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
+    stream_file_other = os.path.join(drafts_dir,'collocated_inst_streams_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
+    stream_file_issues = os.path.join(drafts_dir,dm_stream + '-issues_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
 
     with open(stream_file,'a') as stream_csv: # stream-level annotation .csv
         writer = csv.writer(stream_csv)

@@ -210,9 +210,9 @@ def main(dataset, save_dir, user):
     dm_stream = dataset.split('/')[-1].split('__')[1]
     stream_name = dm_stream.split('-')[-1]
     parameter_file = os.path.join(drafts_dir,
-                               dm_stream + '_parameters_processed_on_' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
+                               dm_stream + '-parameters_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
     parameter_issues = os.path.join(drafts_dir,
-                               dm_stream + '_parameter_issues_processed_on_' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
+                               dm_stream + '-parameter_issues_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
 
     with open(parameter_file, 'a') as parameter_csv:  # stream-level annotation .csv
         writer = csv.writer(parameter_csv)
