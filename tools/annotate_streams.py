@@ -12,13 +12,15 @@ in which to save the output
 user User that completed the review
 """
 
-import simplejson as json
+try: import simplejson as json
+except ImportError: import json
 import csv
 import os
 from datetime import datetime as dt
 import re
 import itertools
 import pandas as pd
+import shutil
 
 
 def make_dir(save_dir):
@@ -48,16 +50,16 @@ def check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues
     '''
     format = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'
     if deploy_end == 'None':  # if there is no deployment end date in asset management
-        newline = (s,d,deploy_begin,deploy_end,'','','','check: no deployment end date in asset management',user,review_date)
+        newline = (s, d, deploy_begin, deploy_end, '', '', '', 'check: no deployment end date in asset management', user, review_date)
         stream_csv_issues.write(format % newline)
     else:
         timedelta_deployend = pd.to_datetime(deploy_end) - pd.to_datetime(data_end) # compare the asset management deployment end date with data file end date
-        if timedelta_deployend < pd.Timedelta(days=1) and timedelta_deployend > pd.Timedelta(minutes=1):  # if the difference is less than 1 day, print to issues file
-            newline = (s,d,data_end,deploy_end,str(timedelta_deployend),'','','check: difference between deploy end date and data file end date',user,review_date)
+        if pd.Timedelta(minutes=1) < timedelta_deployend < pd.Timedelta(days=1): # if the difference is less than 1 day, print to issues file
+            newline = (s, d, data_end, deploy_end, str(timedelta_deployend), '', '', 'check: difference between deploy end date and data file end date', user, review_date)
             stream_csv_issues.write(format % newline)
         else:  # if the difference is > 1 day, print to stream files
             if timedelta_deployend > pd.Timedelta(days=1):
-                newline = (s,d,data_end,deploy_end,'','NOT_AVAILABLE','','check: difference between data end and deployment end date is: ' + str(timedelta_deployend),user,review_date)
+                newline = (s, d, data_end, deploy_end, '', 'NOT_AVAILABLE', '', 'check: difference between data end and deployment end date is: ' + str(timedelta_deployend), user, review_date)
                 outfile.write(format % newline)
 
 
@@ -66,13 +68,13 @@ def annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile, us
     stream annotations for only one gap in a deployment
     '''
     format = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'
-    newline = (s,d,data_begin,gap_start,'','NOT_EVALUATED','','check: evaluate parameters',user,review_date)
+    newline = (s, d, data_begin, gap_start, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
     outfile.write(format % newline)
 
-    newline = (s,d,gap_start,gap_end,'','NOT_AVAILABLE','','check: data gap',user,review_date)
+    newline = (s, d, gap_start, gap_end, '', 'NOT_AVAILABLE', '', 'check: data gap', user, review_date)
     outfile.write(format % newline)
 
-    newline = (s,d,gap_end,data_end,'','NOT_EVALUATED','','check: evaluate parameters',user,review_date)
+    newline = (s, d, gap_end, data_end, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
     outfile.write(format % newline)
 
 
@@ -124,21 +126,20 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                 outfile = stream_csv_other  # if the stream does not match the stream from the file name, write to the collocated instrument .csv
 
             # test if deployment begin from data equals deployment begin from asset management.
-
             timedelta_deploystart = pd.to_datetime(data_begin) - pd.to_datetime(deploy_begin) # compare the asset management deployment start date with data file start date
-            if timedelta_deploystart < pd.Timedelta(days=1) and timedelta_deploystart > pd.Timedelta(minutes=1):  # if the difference is less than 1 day, print to issues file
-                newline = (s,d,deploy_begin,data_begin,str(timedelta_deploystart),'','','check: difference between deploy start date and data file start date',user,review_date)
+            if pd.Timedelta(minutes=1) < timedelta_deploystart < pd.Timedelta(days=1):  # if the difference is less than 1 day, print to issues file
+                newline = (s, d, deploy_begin, data_begin, str(timedelta_deploystart), '', '', 'check: difference between deploy start date and data file start date', user, review_date)
                 stream_csv_issues.write(format % newline)
             else:  # if the difference is > 1 day, print to stream files
                 if timedelta_deploystart > pd.Timedelta(days=1):
-                    newline = (s,d,deploy_begin,data_begin,'','NOT_AVAILABLE','','check: difference between data begin and deployment begin date is: ' + str(timedelta_deploystart),user,review_date)
+                    newline = (s, d, deploy_begin, data_begin, '', 'NOT_AVAILABLE', '', 'check: difference between data begin and deployment begin date is: ' + str(timedelta_deploystart), user, review_date)
                     outfile.write(format % newline)
 
             stream_data = temp['streams'][s]
             file_list = stream_data['files'] # list of files for the deployment
             file_list_sorted = file_list.keys()
-            file_list_sorted.sort(key = natural_keys)  # sorts the data files
-            gap_dict = dict(time_gaps = [])
+            file_list_sorted.sort(key=natural_keys)  # sorts the data files
+            gap_dict = dict(time_gaps=[])
 
             # check for gaps between deployment files of >1 minute
             gaps_between_files(data, file_list_sorted, d, s, stream_csv_issues, user, review_date)
@@ -151,7 +152,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
             gap_dict = list(itertools.chain.from_iterable(gap_dict['time_gaps']))  # flattens the dictionary
 
             if not gap_dict: # if there are no gaps
-                newline = (s,d,data_begin,data_end,'','NOT_EVALUATED','','check: evaluate parameters',user,review_date)
+                newline = (s, d, data_begin, data_end, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
                 outfile.write(format % newline)
 
                 check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user, review_date)
@@ -168,20 +169,20 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
 
                 else:  # stream annotations if there are multiple gaps
                     if cnt == 0: # first gap
-                        newline = (s,d,data_begin,gap_start,'','NOT_EVALUATED','','check: evaluate parameters',user,review_date)
+                        newline = (s, d, data_begin, gap_start, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
                         outfile.write(format % newline)
 
-                        newline = (s,d,gap_start,gap_end,'','NOT_AVAILABLE','','check: data gap: '+ str(timedelta_gap),user,review_date)
+                        newline = (s, d , gap_start, gap_end, '', 'NOT_AVAILABLE', '', 'check: data gap: '+ str(timedelta_gap), user, review_date)
                         outfile.write(format % newline)
                     else:
-                        newline = (s,d,g_end_prev,gap_start,'','NOT_EVALUATED','','check: evaluate parameters',user,review_date)
+                        newline = (s, d, g_end_prev, gap_start, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
                         outfile.write(format % newline)
 
-                        newline = (s,d,gap_start,gap_end,'','NOT_AVAILABLE','','check: data gap: '+ str(timedelta_gap),user,review_date)
+                        newline = (s, d, gap_start, gap_end, '', 'NOT_AVAILABLE', '', 'check: data gap: '+ str(timedelta_gap), user, review_date)
                         outfile.write(format % newline)
 
                         if cnt is len(gap_dict)-1: # last gap
-                            newline = (s,d,gap_end,data_end,'','NOT_EVALUATED','','check: evaluate parameters',user,review_date)
+                            newline = (s, d, gap_end, data_end, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
                             outfile.write(format % newline)
 
                             check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user, review_date)
@@ -191,6 +192,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
 
 
 def main(dataset, save_dir, user):
+    t_now = dt.now().strftime('%Y-%m-%dT%H%M%S')
     review_date = dataset.split('-')[-1].split('.')[0][0:8]
     review_date = dt.strptime(review_date, '%Y%m%d').strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -211,11 +213,13 @@ def main(dataset, save_dir, user):
 
     dm_stream = dataset.split('/')[-1].split('__')[1]
     stream_name = dm_stream.split('-')[-1]
-    stream_file = os.path.join(drafts_dir,dm_stream + '-processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
-    stream_file_other = os.path.join(drafts_dir,'collocated_inst_streams_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
-    stream_file_issues = os.path.join(drafts_dir,dm_stream + '-issues_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
+    stream_file_draft = os.path.join(drafts_dir, '{}-processed_on-{}.csv'.format(dm_stream,t_now))
+    stream_file = os.path.join(refdes_dir, '{}.csv'.format(dm_stream))
+    stream_file_other = os.path.join(drafts_dir, 'collocated_inst_streams_processed_on-{}.csv'.format(t_now))
+    stream_file_issues = os.path.join(drafts_dir, '{}-issues_processed_on-{}.csv'.format(dm_stream, t_now))
 
-    with open(stream_file,'a') as stream_csv: # stream-level annotation .csv
+    print 'Processing {} issues into internal draft stream csv files '.format(dataset,)
+    with open(stream_file_draft,'a') as stream_csv: # stream-level annotation .csv
         writer = csv.writer(stream_csv)
         writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Status', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
         with open(stream_file_other,'a') as stream_csv_other: # stream-level annotation .csv
@@ -230,9 +234,10 @@ def main(dataset, save_dir, user):
     if os.stat(stream_file_other).st_size < 100:
         os.remove(stream_file_other)
 
+    shutil.copyfile(stream_file_draft, stream_file)
 
 if __name__ == '__main__':
-    dataset = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/GA/GA01SUMO/GA01SUMO-RII11-02-CTDBPP033/GA01SUMO-RII11-02-CTDBPP033__recovered_host-ctdbp_p_dcl_instrument_recovered__requested-20170425T175648.json'
-    annotations_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC/GA/GA01SUMO/GA01SUMO-RII11-02-CTDBPP033/'
-    user = 'lori'
+    dataset = '../data/CE09OSPM-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170421T141015.json'
+    annotations_dir = '../output/annotations'
+    user = 'root'
     main(dataset, annotations_dir, user)

@@ -30,6 +30,13 @@ t_now = dt.now().strftime('%Y%m%d_%H%M00')
 logging.basicConfig(filename='check_data_{}.log'.format(t_now), level=logging.DEBUG)
 
 
+def make_dir(save_dir):
+    try:  # Check if the save_dir exists already... if not, make it
+        os.mkdir(save_dir)
+    except OSError:
+        pass
+
+
 def atoi(text):
     return int(text) if text.isdigit() else text
 
@@ -211,6 +218,8 @@ def main(url, save_dir):
             splitter = url.split('/')[-2].split('-')
         else:
             print 'Unrecognized input. Input must be a string of the file location(s) or list of file(s)'
+    else:
+        print 'Dataset must be in a string.'
 
     data = OrderedDict(deployments=OrderedDict())
     for dataset in datasets:
@@ -410,7 +419,7 @@ def main(url, save_dir):
         data['deployments'][d]['data_times']['start'] = data['deployments'][d]['data_times']['start'][0]
         data['deployments'][d]['data_times']['end'] = data['deployments'][d]['data_times']['end'][-1]
 
-
+    make_dir(save_dir)
     save_file = os.path.join(save_dir, '{}-{}-{}-{}__{}-{}__requested-{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], splitter[0]))
     with open(save_file, 'w') as outfile:
         json.dump(data,outfile)
@@ -420,7 +429,6 @@ if __name__ == '__main__':
     # change pandas display width to view longer dataframes
     desired_width = 320
     pd.set_option('display.width', desired_width)
-    # url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/friedrich-knuth-gmail/20170223T213020-RS03AXPS-SF03A-2A-CTDPFA302-streamed-ctdpf_sbe43_sample/catalog.html'
     url = 'https://opendap.oceanobservatories.org/thredds/catalog/ooi/michaesm-marine-rutgers/20170317T160317-CE09OSSM-RID26-07-NUTNRB000-recovered_inst-nutnr_b_instrument_recovered/catalog.html'
     save_dir = '/Users/mikesmith/Documents/'
 

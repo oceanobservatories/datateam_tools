@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(
-    name='check_ooi_nc',
-    version='',
+    name='datateam_tools',
+    version='0.1',
     packages=['old', 'tools'],
     url='https://github.com/ooi-data-review/datateam_tools',
     license='',

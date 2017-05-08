@@ -10,13 +10,14 @@ dataset Path to .json output from analyze_nc_data.py
 save_dir Location to save output
 """
 
-import simplejson as json
+try: import simplejson as json
+except ImportError: import json
 import csv
 import os
 from datetime import datetime as dt
 import re
 import pandas as pd
-
+import shutil
 
 
 def make_dir(save_dir):
@@ -39,7 +40,7 @@ def natural_keys(text):
     return [ atoi(c) for c in re.split('(\d+)', text) ]
 
 
-def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user, review_date):
+def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, review_date, user='root'):
     format = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'
     deployment_list = data['deployments']
     deployment_list_sorted = deployment_list.keys()
@@ -92,22 +93,22 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
             sci_vars = [nn for nn in vars if not reg_ex.search(nn)]
 
             for v in sci_vars:
-                print v
+                # print v
                 parameter = v
                 if deploy_cnt is 0 and cnt is 0:  # print all variables in the file to be used in the timeline plot
                     newline = (parameter, '', '', '', '', '', '', '', user,review_date)
                     parameter_csv.write(format % newline)
 
-                t1 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available']
+                t1 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available'])
                 if intern(t1) is intern('False'):
                     pass
                 else:
                     try:
-                        t2 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['all_nans']
+                        t2 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['all_nans'])
                         if intern(t2) is intern('False'):
                             pass
                         else:
-                            print t2
+                            # print t2
                             flag = 'FAILED'
                             newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested all_nans: ' + t2, user,review_date)
                             parameter_csv.write(format % newline)
@@ -115,11 +116,11 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         pass
 
                     try:
-                        t3 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_test']
+                        t3 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_test'])
                         if intern(t3) is intern('False'):
                             pass
                         else:
-                            print t3
+                            # print t3
                             flag = 'FAILED'
                             newline = (parameter, deployment, data_begin, data_end, 'applies to one file', flag, '', 'tested fill_test: ' + t3, user,review_date)
                             parameter_csv.write(format % newline)
@@ -128,7 +129,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
 
 
                     try:
-                        t4 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_value']
+                        t4 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_value'])
                         if cnt is 0:
                             if t4 == -9999999.0:
                                 pass
@@ -154,7 +155,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         pass
 
                     try:
-                        t5 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_range_test']
+                        t5 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_range_test'])
                         if not t5:
                             pass
                         else:
@@ -164,7 +165,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         pass
 
                     try:
-                        t6 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_spiketest']
+                        t6 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_spiketest'])
                         if not t6:
                             pass
                         else:
@@ -174,7 +175,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
                         pass
 
                     try:
-                        t7 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_stuckvaluetest']
+                        t7 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_stuckvaluetest'])
                         if not t7:
                             pass
                         else:
@@ -189,6 +190,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, us
 
 
 def main(dataset, save_dir, user):
+    t_now = dt.now().strftime('%Y-%m-%dT%H%M%S')
     review_date = dataset.split('-')[-1].split('.')[0][0:8]
     review_date = dt.strptime(review_date, '%Y%m%d').strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -209,25 +211,24 @@ def main(dataset, save_dir, user):
 
     dm_stream = dataset.split('/')[-1].split('__')[1]
     stream_name = dm_stream.split('-')[-1]
-    parameter_file = os.path.join(drafts_dir,
-                               dm_stream + '-parameters_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
-    parameter_issues = os.path.join(drafts_dir,
-                               dm_stream + '-parameter_issues_processed_on-' + dt.now().strftime('%Y-%m-%dT%H%M%S') + '.csv')
+    parameter_file = os.path.join(refdes_dir, '{}-parameters.csv'.format(dm_stream))
+    parameter_file_draft = os.path.join(drafts_dir, '{}-parameters_processed_on-{}.csv'.format(dm_stream, t_now))
+    parameter_issues_draft = os.path.join(drafts_dir, '{}-parameter_issues_processed_on-{}.csv'.format(dm_stream, t_now))
 
-    with open(parameter_file, 'a') as parameter_csv:  # stream-level annotation .csv
+    print 'Processing {} issues into internal draft parameter csv files '.format(dataset)
+    with open(parameter_file_draft, 'a') as parameter_csv:  # stream-level annotation .csv
         writer = csv.writer(parameter_csv)
         writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Status', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
-        with open(parameter_issues, 'a') as parameter_issues_csv:  # stream-level annotation .csv
+        with open(parameter_issues_draft, 'a') as parameter_issues_csv:  # stream-level annotation .csv
             writer = csv.writer(parameter_issues_csv)
             writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Notes', 'Test', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
 
             annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, user, review_date)
 
+    shutil.copyfile(parameter_file_draft, parameter_file)
 
 if __name__ == '__main__':
-#    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/GP03FLMA-RIM01-02-CTDMOG040__telemetered-ctdmo_ghqr_sio_mule_instrument__requested-20170315T142924.json'
-#    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
-    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test/CE04OSPS-SF01B-2A-CTDPFA107__streamed-ctdpf_sbe43_sample__requested-20170322T221944.json'
-    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output_ric/CE04OSPS-SF01B-2A-CTDPFA107-streamed/test'
-    user = 'leila'
+    dataset = '../data/CE09OSPM-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170421T141015.json'
+    annotations_dir = '../output/annotations'
+    user = 'root'
     main(dataset, annotations_dir, user)
