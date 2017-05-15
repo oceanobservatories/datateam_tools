@@ -235,6 +235,11 @@ def main(url, save_dir):
                     qc_data = request_qc_json(ref_des)  # grab data from the qc database
                     ref_des_dict = get_parameter_list(qc_data)
                     deploy_info = get_deployment_information(qc_data, deployment)
+
+                    if deploy_info is None:
+                        print 'info from deployment ' + str(deployment) + ' does not match data'
+                        continue
+
                     data_start = ds.time_coverage_start + 'Z'
                     data_end = ds.time_coverage_end + 'Z'
 
