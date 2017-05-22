@@ -102,13 +102,15 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
                     newline = (parameter, '', '', '', '', '', '', '', user, review_date)
                     parameter_csv.write(format % newline)
 
-                t1 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available'])
-                if intern(t1) is intern('False'):
+                t1 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available']
+                # if intern(t1) is intern('False'):
+                if t1 == 'True':
                     pass
                 else:
                     try:
-                        t2 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['all_nans'])
-                        if intern(t2) is intern('False'):
+                        t2 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['all_nans']
+                        # if intern(t2) is intern('False'):
+                        if t2 == 'False':
                             pass
                         else:
                             # print t2
@@ -120,8 +122,9 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
                         pass
 
                     try:
-                        t3 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_test'])
-                        if intern(t3) is intern('False'):
+                        t3 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_test']
+                        # if intern(t3) is intern('False'):
+                        if t3 == 'False':
                             pass
                         else:
                             # print t3
@@ -134,7 +137,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
 
 
                     try:
-                        t4 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_value'])
+                        t4 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['fill_value']
                         if cnt is 0:
                             if t4 == -9999999.0:
                                 pass
@@ -165,7 +168,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
                         pass
 
                     try:
-                        t5 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_range_test'])
+                        t5 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['global_range_test']
                         if not t5:
                             pass
                         else:
@@ -176,7 +179,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
                         pass
 
                     try:
-                        t6 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_spiketest'])
+                        t6 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_spiketest']
                         if not t6:
                             pass
                         else:
@@ -187,7 +190,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
                         pass
 
                     try:
-                        t7 = str(data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_stuckvaluetest'])
+                        t7 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['dataqc_stuckvaluetest']
                         if not t7:
                             pass
                         else:
