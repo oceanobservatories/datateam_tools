@@ -63,7 +63,7 @@ def check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues
                 outfile.write(format % newline)
 
 
-def annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile, user, review_date):
+def annotate_one_gap(s, d, data_begin, gap_start, gap_end, timedelta_gap, data_end, outfile, user, review_date):
     '''
     stream annotations for only one gap in a deployment
     '''
@@ -71,7 +71,7 @@ def annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile, us
     newline = (s, d, data_begin, gap_start, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
     outfile.write(format % newline)
 
-    newline = (s, d, gap_start, gap_end, '', 'NOT_AVAILABLE', '', 'check: data gap', user, review_date)
+    newline = (s, d, gap_start, gap_end, '', 'NOT_AVAILABLE', '', 'check: data gap: ' + str(timedelta_gap), user, review_date)
     outfile.write(format % newline)
 
     newline = (s, d, gap_end, data_end, '', 'NOT_EVALUATED', '', 'check: evaluate parameters', user, review_date)
@@ -164,7 +164,7 @@ def extract_gaps(data, stream_csv, stream_csv_other, stream_csv_issues, stream_n
                 timedelta_gap = pd.to_datetime(gap_end) - pd.to_datetime(gap_start)
 
                 if len(gap_dict) == 1: # stream annotations if there is only 1 gap
-                    annotate_one_gap(s, d, data_begin, gap_start, gap_end, data_end, outfile, user, review_date)
+                    annotate_one_gap(s, d, data_begin, gap_start, gap_end, timedelta_gap, data_end, outfile, user, review_date)
                     check_deploy_end(s, d, deploy_begin, deploy_end, data_end, stream_csv_issues, outfile, user, review_date)
 
                 else:  # stream annotations if there are multiple gaps
