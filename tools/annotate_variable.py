@@ -104,7 +104,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
 
                 t1 = data['deployments'][d]['streams'][s]['files'][x]['variables'][v]['available']
                 # if intern(t1) is intern('False'):
-                if t1 == 'True':
+                if t1 == 'False':
                     pass
                 else:
                     try:
@@ -244,7 +244,7 @@ def main(dataset, save_dir, user):
     shutil.copyfile(parameter_file_draft, parameter_file)
 
 if __name__ == '__main__':
-    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUO-WFP01-03-CTDPFK000__telemetered-ctdpf_ckl_wfp_instrument__requested-20170509T182054.json'
-    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output/annotations'
-    user = 'root'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170517T223350.json'
+    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output/'
+    user = 'Leila'
     main(dataset, annotations_dir, user)
