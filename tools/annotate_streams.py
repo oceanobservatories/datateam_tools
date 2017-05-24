@@ -211,13 +211,13 @@ def main(dataset, save_dir, user):
     drafts_dir = os.path.join(refdes_dir, 'internal_drafts')
     make_dir(drafts_dir)
 
-    dm_stream = dataset.split('/')[-1].split('-')[-1]
-    stream_name = dm_stream.split('__requested')[0]
+    stream_name = dataset.split('/')[-1].split('-')[-1].split('__requested')[0]
+    delivered_method = dataset.split('/')[-1].split('__')[1].split('-')[0]
 
-    stream_file_draft = os.path.join(drafts_dir, '{}-processed_on-{}.csv'.format(dm_stream,t_now))
-    stream_file = os.path.join(refdes_dir, '{}.csv'.format(dm_stream))
+    stream_file_draft = os.path.join(drafts_dir, '{}-processed_on-{}.csv'.format(delivered_method, stream_name,t_now))
+    stream_file = os.path.join(refdes_dir, '{}.csv'.format(delivered_method, stream_name))
     stream_file_other = os.path.join(drafts_dir, 'collocated_inst_streams_processed_on-{}.csv'.format(t_now))
-    stream_file_issues = os.path.join(drafts_dir, '{}-issues_processed_on-{}.csv'.format(dm_stream, t_now))
+    stream_file_issues = os.path.join(drafts_dir, '{}-issues_processed_on-{}.csv'.format(delivered_method, stream_name, t_now))
 
     print 'Processing {} issues into internal draft stream csv files '.format(dataset,)
     with open(stream_file_draft,'a') as stream_csv: # stream-level annotation .csv
