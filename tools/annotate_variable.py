@@ -207,7 +207,7 @@ def annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, re
 
 def main(dataset, save_dir, user):
     t_now = dt.now().strftime('%Y-%m-%dT%H%M%S')
-    review_date = dataset.split('-')[-1].split('.')[0][0:8]
+    review_date = dataset.split('_')[-1].split('.')[0][0:8]
     review_date = dt.strptime(review_date, '%Y%m%d').strftime('%Y-%m-%dT%H:%M:%SZ')
 
     file = open(dataset, 'r')
@@ -225,8 +225,8 @@ def main(dataset, save_dir, user):
     drafts_dir = os.path.join(refdes_dir, 'internal_drafts')
     make_dir(drafts_dir)
 
-    dm_stream = dataset.split('/')[-1].split('__')[1]
-    stream_name = dm_stream.split('-')[-1]
+    dm_stream = dataset.split('/')[-1].split('-')[-1]
+    stream_name = dm_stream.split('__requested')[0]
     parameter_file = os.path.join(refdes_dir, '{}-parameters.csv'.format(dm_stream))
     parameter_file_draft = os.path.join(drafts_dir, '{}-parameters_processed_on-{}.csv'.format(dm_stream, t_now))
     parameter_issues_draft = os.path.join(drafts_dir, '{}-parameter_issues_processed_on-{}.csv'.format(dm_stream, t_now))
@@ -244,7 +244,8 @@ def main(dataset, save_dir, user):
     shutil.copyfile(parameter_file_draft, parameter_file)
 
 if __name__ == '__main__':
-    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170517T223350.json'
+    #dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170517T223350.json'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-05-PARADK000__telemetered-parad_k__stc_imodem_instrument__requested_20170517T231001.json'
     annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output/'
     user = 'Leila'
     main(dataset, annotations_dir, user)
