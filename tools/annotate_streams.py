@@ -214,10 +214,10 @@ def main(dataset, save_dir, user):
     stream_name = dataset.split('/')[-1].split('-')[-1].split('__requested')[0]
     delivered_method = dataset.split('/')[-1].split('__')[1].split('-')[0]
 
-    stream_file_draft = os.path.join(drafts_dir, '{}-processed_on-{}.csv'.format(delivered_method, stream_name,t_now))
-    stream_file = os.path.join(refdes_dir, '{}.csv'.format(delivered_method, stream_name))
+    stream_file_draft = os.path.join(drafts_dir, '{}-processed_on-{}.csv'.format(delivered_method + '-' + stream_name,t_now))
+    stream_file = os.path.join(refdes_dir, '{}.csv'.format(delivered_method + '-' + stream_name))
     stream_file_other = os.path.join(drafts_dir, 'collocated_inst_streams_processed_on-{}.csv'.format(t_now))
-    stream_file_issues = os.path.join(drafts_dir, '{}-issues_processed_on-{}.csv'.format(delivered_method, stream_name, t_now))
+    stream_file_issues = os.path.join(drafts_dir, '{}-issues_processed_on-{}.csv'.format(delivered_method + '-' + stream_name, t_now))
 
     print 'Processing {} issues into internal draft stream csv files '.format(dataset,)
     with open(stream_file_draft,'a') as stream_csv: # stream-level annotation .csv
@@ -238,7 +238,8 @@ def main(dataset, save_dir, user):
     shutil.copyfile(stream_file_draft, stream_file)
 
 if __name__ == '__main__':
-    dataset = '../data/CE09OSPM-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170421T141015.json'
-    annotations_dir = '../output/annotations'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-01-VEL3DK000__recovered_wfp-vel3d_k_wfp_instrument__requested_20170517T223334.json'
+    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output/annotations'
+
     user = 'Leila'
     main(dataset, annotations_dir, user)

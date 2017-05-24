@@ -228,9 +228,9 @@ def main(dataset, save_dir, user):
     stream_name = dataset.split('/')[-1].split('-')[-1].split('__requested')[0]
     delivered_method = dataset.split('/')[-1].split('__')[1].split('-')[0]
 
-    parameter_file = os.path.join(refdes_dir, '{}-parameters.csv'.format(delivered_method, stream_name))
-    parameter_file_draft = os.path.join(drafts_dir, '{}-parameters_processed_on-{}.csv'.format(delivered_method, stream_name, t_now))
-    parameter_issues_draft = os.path.join(drafts_dir, '{}-parameter_issues_processed_on-{}.csv'.format(delivered_method, stream_name, t_now))
+    parameter_file = os.path.join(refdes_dir, '{}-parameters.csv'.format(delivered_method + '-' + stream_name))
+    parameter_file_draft = os.path.join(drafts_dir, '{}-parameters_processed_on-{}.csv'.format(delivered_method + '-' + stream_name, t_now))
+    parameter_issues_draft = os.path.join(drafts_dir, '{}-parameter_issues_processed_on-{}.csv'.format(delivered_method + '-' + stream_name, t_now))
 
 
     print 'Processing {} issues into internal draft parameter csv files '.format(dataset)
@@ -247,7 +247,7 @@ def main(dataset, save_dir, user):
 
 if __name__ == '__main__':
     #dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170517T223350.json'
-    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-01-VEL3DK000__telemetered-vel3d_k_wfp_stc_metadata__requested_20170517T223339.json'
-    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output/'
+    dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-01-VEL3DK000__recovered_wfp-vel3d_k_wfp_instrument__requested_20170517T223334.json'
+    annotations_dir = '/Users/leila/Documents/OOI_GitHub_repo/output/annotations'
     user = 'Leila'
     main(dataset, annotations_dir, user)
