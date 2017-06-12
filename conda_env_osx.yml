@@ -101,9 +101,7 @@ dependencies:
   - backports-abc==0.5
   - backports.shutil-get-terminal-size==1.0.0
   - backports.ssl-match-hostname==3.5.0.1
-  - check-ooi-nc==0.1
   - ipython-genutils==0.2.0
-  - mi-dataset==0.2.1
   - ntplib==0.3.3
   - prompt-toolkit==1.0.14
   - thredds-crawler==1.5.3
