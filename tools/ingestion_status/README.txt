@@ -6,7 +6,7 @@ Create the status file to complete the status column before creating the timelin
 (2) run ingest_append.py
 (3) run status.py
 (4) open “*_status_file.csv” and verify and complete the status and note columns 
-	(4.1) investigate and resolve instrument(s) status. use status_Key.csv for status definition.
+	(4.1) investigate and resolve instrument(s) status. Use status_Key.csv for status definition.
 	(4.2) Fill in the gaps of the start and end date columns:
 	        (a) some instruments were left out of the deployment sheet when not deployed.
 	        (b) fill in the end date of the last deployment.
