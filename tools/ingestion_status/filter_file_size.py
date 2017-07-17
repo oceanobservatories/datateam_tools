@@ -12,8 +12,9 @@ import os.path, time
 import pandas
 
 #basedir = '/Volumes/dav/CP04OSSM/D00005/cg_data/dcl11/mopak'
-basedir = '/Volumes/dav/CP02PMUI/D00008/imm/mmp/A*.DEC'
-#basedir = '/Volumes/dav/GI01SUMO/R00001/cg_data/dcl11/imm/CTDMO_sn37-11481/'
+# basedir = '/Volumes/dav/CP02PMUI/D00008/imm/mmp/A*.DEC'
+# basedir = '/Volumes/dav/GI01SUMO/R00001/cg_data/dcl11/imm/CTDMO_sn37-11481/'
+basedir = '/Volumes/dav/CE01ISSM/D00001/dcl17/velpt*/'
 compare_2_date = pandas.to_datetime('today')
 compare_2_date = compare_2_date.strftime("%d/%m/%Y")
 file_1K_size = 0

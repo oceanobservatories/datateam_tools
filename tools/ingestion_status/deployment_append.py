@@ -11,11 +11,11 @@ import glob
 import os
 
 '''
-This script combines all deployment sheets in a local repo /Users/leila/Documents/OOI_GitHub_repo/asset-management/deployment
+This script combines all deployment sheets found on the local copy from the gitHub repo: /Users/leila/Documents/OOI_GitHub_repo/asset-management/deployment
 
 '''
 
-rootdir = '/Users/leila/Documents/OOI_GitHub_repo/asset-management/deployment'
+rootdir = '/Users/leila/Documents/OOI_GitHub_repo/repos/ooi-integration/asset-management/deployment'
 
 
 df = pd.DataFrame()
@@ -43,4 +43,4 @@ file_header = ['CUID_Deploy', 'deployedBy', 'CUID_Recover', 'recoveredBy', 'Refe
                'deploymentNumber', 'versionNumber', 'startDateTime', 'stopDateTime', 'mooring.uid',
                'node.uid', 'sensor.uid', 'lat', 'lon', 'orbit', 'deployment_depth', 'water_depth', 'notes']
 
-df.to_csv('/Users/leila/Documents/OOI_GitHub_repo/ingest-status/Deploy_file.csv', index = False, columns = file_header)
+df.to_csv('/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/Deploy_file.csv', index = False, columns = file_header)

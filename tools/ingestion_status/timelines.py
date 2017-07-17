@@ -21,54 +21,67 @@ from ast import literal_eval
 #desired_width = 600
 #pd.set_option('display.width', desired_width)
 
-file_path = '/Users/leila/Documents/OOI_GitHub_repo/ingest-status'
-file_name = 'CP01CNSM_status_file.csv'
+file_path = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results'
+file_name = 'CP01CNSM_17-07-2017_rawfiles_status_LB.csv'
 
-cols = ['ingest_csv_filename',	'platform',	'deployment#', 'uframe_route', 'filename_mask', 'number_files',
-        'reference_designator',	'data_source', 'status', 'source', 'note', 'CUID_Deploy', 'deployedBy',
-        'CUID_Recover',	'recoveredBy', 'reference_designator',	'deployment#', 'versionNumber', 'startDateTime',
-        'stopDateTime',	'mooring.uid', 'node.uid', 'sensor.uid', 'lat', 'lon', 'orbit',
-        'deployment_depth', 'water_depth', 'notes']
+cols = ['reference_designator', 'data_source', 'type_list',
+          'ingest_csv_filename', 'platform', 'deployment#', 'uframe_route_y',
+          'filename_mask', 'number_files', 'file of today', 'file <= 1k',
+          'file > 1K', 'Automated_status', 'status', 'notes_x', 'CUID_Deploy',
+          'deployedBy', 'CUID_Recover', 'recoveredBy', 'versionNumber',
+          'startDateTime', 'stopDateTime', 'mooring.uid', 'node.uid',
+          'sensor.uid', 'lat', 'lon', 'orbit', 'deployment_depth', 'water_depth', 'notes_y']
 
-status_text  = ['Not Deployed','Unavailable','Available','Not Expected','Pending', 'Missing','Expected recovered data for deployment 6 are not plotted']
+status_text  = ['Not Deployed','Not Available','Available','Not Expected','Pending', 'Missing','Expected']
 textr_marker  = ['.','.','.','.','.', '.','.']#['x','o','.','o','+', '-','*']
 status_color = ['black','magenta' , 'green', 'cyan', 'red', 'yellow', 'blue']#'#efefff' '#8f8f99' #5f5f66
 
 
-df = pd.read_csv(os.path.join(file_path, file_name),
-                 parse_dates=True,
-                 usecols=cols,
-                 )
+df = pd.read_csv(os.path.join(file_path, file_name),parse_dates=True,usecols=cols)
 df['startDateTime'] = df['startDateTime'].apply(lambda x: pd.to_datetime(x))
-df['stopDateTime']  = df['stopDateTime'].apply(lambda x: pd.to_datetime(x))
+df['stopDateTime'] = df['stopDateTime'].apply(lambda x: pd.to_datetime(x))
 
 reference_designators = list(pd.unique(df['reference_designator'].ravel()))
 deployments = list(pd.unique(df['deployment#'].ravel()))
 
-cnt = 0
-ii_index = 1.5
-y_list = []
 
 #fig = plt.figure()
 #fig.patch.set_facecolor('black')
 
-for reference_designator in reference_designators:
-    print reference_designator
-    ind_r = df.loc[(df['reference_designator'] == reference_designator)]
-    data_sources = list(pd.unique(ind_r['data_source'].ravel()))
+ref_sci = []
+ref_num = 0
+for rf in reference_designators:
+    #print rf
+    ind_r = df.loc[(df['reference_designator'] == rf)]
+    inst_genre = list(pd.unique(ind_r['type_list'].ravel()))
+    #print inst_genre[0]
+    if inst_genre[0] == "Science":
+        ref_sci.append(rf)
+        ref_num += 1
+print ref_num
+print ref_sci
+
+cnt = 0
+ii_index = 1.5
+y_list = []
+for ref_des in ref_sci:
+    print ref_des
+    ind_rr = df.loc[(df['reference_designator'] == ref_des)]
+    data_sources = list(pd.unique(ind_rr['data_source'].ravel()))
     print data_sources
     plt.grid()
-    plt.ylim([0, (len(reference_designators)*3.5)])
+    plt.ylim([0, (ref_num*3.5)]) #len(reference_designators)
     plt.tick_params(axis='y', which='both', labelleft='off', labelright='on')
 
     for data_source in data_sources:
 
-        ind_tr     = ind_r.loc[(ind_r['data_source'] == data_source)]
+        ind_tr     = ind_rr.loc[(ind_rr['data_source'] == data_source)]
         num_dep    = ind_tr['deployment#'].ravel()
         start_dep  = ind_tr['startDateTime'].ravel()
         end_dep    = ind_tr['stopDateTime'].ravel()
-        data_stats = list(pd.unique(ind_tr['status'].ravel()))
+        data_stats = list(pd.unique(ind_tr['Automated_status'].ravel()))
         print data_stats
+
         deploy_index = np.full((2,end_dep.size), ii_index)
         deploy_index = np.array(deploy_index)
         deploy_time  = np.array([start_dep[0:end_dep.size],end_dep[0:end_dep.size]])
@@ -97,7 +110,7 @@ for reference_designator in reference_designators:
             color_data = status_color[color_ind]
             color_marker = textr_marker[color_ind]
 
-            ind_stat = ind_tr.loc[(ind_tr['status'] == data_stat)]
+            ind_stat = ind_tr.loc[(ind_tr['Automated_status'] == data_stat)]
 
             st_dep = ind_stat['startDateTime'].ravel()
             en_dep = ind_stat['stopDateTime'].ravel()
@@ -115,13 +128,13 @@ for reference_designator in reference_designators:
     y_list.append(ii_index-3)
 
 y = np.array(y_list)
-print y, len(y) , len(reference_designators)
+print y, len(y) , len(ref_sci)
 
-plt.yticks(y, reference_designators,fontsize=9)
+plt.yticks(y, ref_sci,fontsize=9)
 plt.xticks(rotation=20)
-#plt.patch.set_facecolor('black')
-#plt.set_style("dark")
-#plt.title(('RIC: {}, Variable: {}\n{} D0000{}').format(generation, row.variable, split[0], deployment))
+# plt.patch.set_facecolor('black')
+# plt.set_style("dark")
+# plt.title(('RIC: {}, Variable: {}\n{} D0000{}').format(generation, row.variable, split[0], deployment))
 fig_size = plt.rcParams['figure.figsize']
 fig_size[0] = 12
 fig_size[1] = 8.5
