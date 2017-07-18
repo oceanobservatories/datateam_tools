@@ -2,7 +2,6 @@
 
 """
 Created on Mon Feb 06 2017
-
 @author: leilabbb
 """
 
@@ -11,18 +10,17 @@ import glob
 import os
 import time
 
-
 start_time = time.time()
 
 '''
-This script combines all/or selected ingestion sheets found in GitHub repo (https://github.com/ooi-integration/ingestion-csvs)
-
+This script combines all/or selected ingestion sheets found in GitHub repo:
+https://github.com/ooi-integration/ingestion-csvs
 '''
 # path to local copy of ingestion-csvs repo
 rootdir = '/Users/leila/Documents/OOI_GitHub_repo/repos/ooi-integration/ingestion-csvs/'
-# select the the platform with ingestion files
-ingest_key = 'CP01CNSM'
-# select the ingestion file  example _D00003_ingest.csv or leave it as generic _ingest.csv
+# select the platform
+ingest_key = 'CE04OSPD' #CE04OSPS
+# select the ingestion file example _D00003_ingest.csv or leave it as generic _ingest.csv
 ingestion_file = '_ingest.csv'
 # path to data file on the raw data repo
 dav_mount = '/Volumes/dav/'
@@ -32,9 +30,9 @@ splitter = '/OMC/'
 splitter_C = '/rsn_data/DVT_Data/'
 splitter_CC = '/RSN/'
 
-# used for: (1) output file created on (2) check raw data files created on todays' date
+# used for: (1) output file created on
+#           (2) check raw data files created today
 datein = pd.to_datetime('today')
-
 
 df = pd.DataFrame()
 for root, dirs, files in os.walk(rootdir):
@@ -75,7 +73,7 @@ for root, dirs, files in os.walk(rootdir):
                             size1kless = []
                             size1kplus = []
                             todayfile = []
-                            statusfile= []
+                            statusfile = []
 
                             index_i = 0
                             for row in filereader.itertuples():
@@ -167,9 +165,9 @@ for root, dirs, files in os.walk(rootdir):
 
                                 print row.Index, index_i, "--->", web_dir, ' : '
                                 print '           number of files =', file_num[index_i], kk
-                                print '           file <= 1k = ', size1kless[index_i] #file_1K_size
-                                print '           file > 1K = ', size1kplus[index_i]#file_1Kplus_size
-                                print '           file of today = ', todayfile[index_i]#file_of_today
+                                print '           file <= 1k =', size1kless[index_i] #file_1K_size
+                                print '           file > 1K =', size1kplus[index_i]#file_1Kplus_size
+                                print '           file of today =', todayfile[index_i]#file_of_today
 
                                 index_i += 1
 
