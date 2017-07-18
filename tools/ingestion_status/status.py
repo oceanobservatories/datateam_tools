@@ -31,7 +31,7 @@ rf6 = pd.read_csv(file6)
 
 mf56 = pd.merge(rf6, sbl5, on=['reference_designator','deployment#'], how='left')
 
-mf56d = pd.merge(sbld, mf56, on=['reference_designator','data_source'], how='left')
+mf56d = pd.merge(sbld, mf56, on=['reference_designator','data_source'], how='outer')
 
 header = ['reference_designator', 'data_source', 'type_list',
           'ingest_csv_filename', 'platform', 'deployment#', 'uframe_route_y',
