@@ -1,0 +1,48 @@
+ingest_csv_filename,platform,deployment#,uframe_route,filename_mask,number_files,file of today,file <= 1k,file > 1K,reference_designator,data_source,Automated_status,status,notes
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,Ingest.flord-l-wfp-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00001/*.we_wfp_*.dat,9,0,0,9,GI02HYPM-WFP02-01-FLORDL000,telemetered,Available,,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,Ingest.dosta-ln-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00001/*.we_wfp_*.dat,9,0,0,9,GI02HYPM-WFP02-03-DOSTAL000,telemetered,Available,,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,Ingest.ctdpf-ckl-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00001/*.wc_wfp_*.dat,4,0,2,2,GI02HYPM-WFP02-04-CTDPFL000,telemetered,Available,,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,Ingest.vel3d-l-wfp-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00001/*.wa_wfp_*.dat,4,0,0,4,GI02HYPM-WFP02-05-VEL3DL000,telemetered,Available,,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA009,telemetered,,Not deployed,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA010,telemetered,,Not deployed,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,Ingest.ctdmo-ghqr-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00001/*ctdmo_*.dat,8,0,3,5,GI02HYPM-RIM01-02-CTDMOG039,telemetered,Available,,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,Ingest.sio-eng-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00001/node*p1_*.status*.dat,53,0,47,6,GI02HYPM-RIM01-00-SIOENG000,telemetered,Available,,NaN
+GI02HYPM_D00001_ingest.csv,GI02HYPM,001,Ingest.wfp-eng-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00001/*.we_wfp_*.dat,9,0,0,9,GI02HYPM-WFP02-00-WFPENG000,telemetered,Available,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,# Ingest.flord-l-wfp-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00002/*.we_wfp_*.dat,0,0,0,0,GI02HYPM-WFP02-01-FLORDL000,telemetered,Missing,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,# Ingest.dosta-ln-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00002/*.we_wfp_*.dat,0,0,0,0,GI02HYPM-WFP02-03-DOSTAL000,telemetered,Missing,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,# Ingest.ctdpf-ckl-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00002/*.wc_wfp_*.dat,0,0,0,0,GI02HYPM-WFP02-04-CTDPFL000,telemetered,Missing,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,# Ingest.vel3d-l-wfp-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00002/*.wa_wfp_*.dat,0,0,0,0,GI02HYPM-WFP02-05-VEL3DL000,telemetered,Missing,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA009,telemetered,,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA010,telemetered,,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,Ingest.ctdmo-ghqr-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00002/*ctdmo_*.dat,23,0,10,13,GI02HYPM-RIM01-02-CTDMOG039,telemetered,Available,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,Ingest.sio-eng-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00002/node*p1_*.status*.dat,22,0,16,6,GI02HYPM-RIM01-00-SIOENG000,telemetered,Available,,NaN
+GI02HYPM_D00002_ingest.csv,GI02HYPM,002,# Ingest.wfp-eng-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00002/*.we_wfp_*.dat,0,0,0,0,GI02HYPM-WFP02-00-WFPENG000,telemetered,Missing,,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,Ingest.flord-l-wfp-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00003/*.we_wfp_*.dat,25,0,17,8,GI02HYPM-WFP02-01-FLORDL000,telemetered,Available,,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,Ingest.dosta-ln-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00003/*.we_wfp_*.dat,25,0,17,8,GI02HYPM-WFP02-03-DOSTAL000,telemetered,Available,,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,Ingest.ctdpf-ckl-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00003/*.wc_wfp_*.dat,29,0,29,0,GI02HYPM-WFP02-04-CTDPFL000,telemetered,Available,,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,Ingest.vel3d-l-wfp-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00003/*.wa_wfp_*.dat,25,0,0,25,GI02HYPM-WFP02-05-VEL3DL000,telemetered,Available,,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA009,telemetered,,Not installed,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA010,telemetered,,Not installed,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,Ingest.ctdmo-ghqr-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00003/*ctdmo_*.dat,54,0,54,0,GI02HYPM-RIM01-02-CTDMOG039,telemetered,Available,,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,Ingest.sio-eng-sio_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00003/node*p1_*.status*.dat,41,0,41,0,GI02HYPM-RIM01-00-SIOENG000,telemetered,Available,,NaN
+GI02HYPM_D00003_ingest.csv,GI02HYPM,003,Ingest.wfp-eng-wfp-sio-mule_telemetered,/omc_data/whoi/OMC/GI02HYPM/D00003/*.we_wfp_*.dat,25,0,17,8,GI02HYPM-WFP02-00-WFPENG000,telemetered,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.vel3d-l-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/GWFP_sn13104-01/A*.DA?,403,0,0,403,GI02HYPM-WFP02-05-VEL3DL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.ctdpf-ckl-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/GWFP_sn13104-01/C*.DA?,403,0,0,403,GI02HYPM-WFP02-04-CTDPFL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.dosta-ln-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/GWFP_sn13104-01/E*.DA?,404,0,2,402,GI02HYPM-WFP02-03-DOSTAL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.flord-l-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/GWFP_sn13104-01/E*.DA?,404,0,2,402,GI02HYPM-WFP02-01-FLORDL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.wfp-eng-stc-imodem_recovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/GWFP_sn13104-01/E*.DA?,404,0,2,402,GI02HYPM-WFP02-00-WFPENG000,recovered_wfp,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.ctdmo-ghqr_recovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/CTDMO-G_sn12190/*.hex,1,0,0,1,GI02HYPM-RIM01-02-CTDMOG039,recovered_inst,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.ctdmo-ghqr-sio_ctRecovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/CTDMO-G_sn12190/*.DAT,341,0,0,341,GI02HYPM-RIM01-02-CTDMOG039,recovered_host,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,Ingest.sio-eng-sio_recovered,/omc_data/whoi/OMC/GI02HYPM/R00001/cg_data/dcl00/MSIOC_sn/STA*.DA?,341,0,0,341,GI02HYPM-RIM01-00-SIOENG000,recovered_host,Available,,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA009,recovered_inst,,Not deployed,NaN
+GI02HYPM_R00001_ingest.csv,GI02HYPM,001,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA010,recovered_inst,,Not deployed,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.vel3d-l-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/GWFP_sn12774-01/0*/A*.DA?,381,0,0,381,GI02HYPM-WFP02-05-VEL3DL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.ctdpf-ckl-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/GWFP_sn12774-01/0*/C*.DA?,381,0,0,381,GI02HYPM-WFP02-04-CTDPFL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.dosta-ln-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/GWFP_sn12774-01/0*/E*.DA?,382,0,0,382,GI02HYPM-WFP02-03-DOSTAL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.flord-l-wfp_recovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/GWFP_sn12774-01/0*/E*.DA?,382,0,0,382,GI02HYPM-WFP02-01-FLORDL000,recovered_wfp,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.wfp-eng-stc-imodem_recovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/GWFP_sn12774-01/0*/E*.DA?,382,0,0,382,GI02HYPM-WFP02-00-WFPENG000,recovered_wfp,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.ctdmo-ghqr_recovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/CTDMO_sn37-13439/*.hex,1,0,0,1,GI02HYPM-RIM01-02-CTDMOG039,recovered_inst,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.ctdmo-ghqr-sio_ctRecovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/CTDMO_sn37-13439/*.DAT,338,0,3,335,GI02HYPM-RIM01-02-CTDMOG039,recovered_host,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,Ingest.sio-eng-sio_recovered,/omc_data/whoi/OMC/GI02HYPM/R00002/cg_data/dcl00/MSIOC_sn13284/STATUS/STA*.DA?,338,0,0,338,GI02HYPM-RIM01-00-SIOENG000,recovered_host,Available,,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA009,recovered_inst,,Not deployed,NaN
+GI02HYPM_R00002_ingest.csv,GI02HYPM,002,#,,file_mask is empty,file_mask is empty,file_mask is empty,file_mask is empty,GI02HYPM-MPM01-02-ZPLSGA010,recovered_inst,,Not deployed,NaN
