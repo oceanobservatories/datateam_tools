@@ -40,7 +40,7 @@ mf56d['mask_name_consistency'] = mf56d['filename_mask'].str.split('/').str[5]
 mf56d['compare_DH'] = np.where(mf56d['file_name_consistency'] == mf56d['mask_name_consistency'], mf56d['file_name_consistency'], 'False')
 
 header = ['reference_designator', 'data_source', 'type_list',
-          'ingest_csv_filename', 'platform', 'deployment#', 'uframe_route_y',
+          'ingest_csv_filename', 'platform', 'deployment#', 'uframe_route',
           'filename_mask', 'number_files', 'file of today', 'file <= 1k',
           'file > 1K', 'compare_DH',
           'Automated_status', 'status', 'notes_x', 'CUID_Deploy','compare',
