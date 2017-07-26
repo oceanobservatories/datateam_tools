@@ -1,0 +1,8 @@
+ingest_csv_filename,platform,deployment#,uframe_route,filename_mask,number_files,file of today,file <= 1k,file > 1K,reference_designator,data_source,Automated_status,status,notes
+GA05MOAS-PG580_D00001_ingest.csv,GA05MOAS,001,#Ingest.glider-eng-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG580/D00001/merged-from-glider/ga_*.mrg,0,0,0,0,GA05MOAS-PG580-00-ENG000000,telemetered,Missing,No data on server,NaN
+GA05MOAS-PG580_D00001_ingest.csv,GA05MOAS,001,#Ingest.ctdgv-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG580/D00001/merged-from-glider/ga_*.mrg,0,0,0,0,GA05MOAS-PG580-01-CTDGVM000,telemetered,Missing,No data on server,NaN
+GA05MOAS-PG580_D00001_ingest.csv,GA05MOAS,001,#Ingest.dosta-abcdjm-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG580/D00001/merged-from-glider/ga_*.mrg,0,0,0,0,GA05MOAS-PG580-02-DOSTAM000,telemetered,Missing,No data on server,NaN
+GA05MOAS-PG580_D00001_ingest.csv,GA05MOAS,001,#Ingest.flort-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG580/D00001/merged-from-glider/ga_*.mrg,0,0,0,0,GA05MOAS-PG580-03-FLORTM000,telemetered,Missing,No data on server,NaN
+GA05MOAS-PG580_D00001_ingest.csv,GA05MOAS,001,#Ingest.flort-o-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG580/D00001/merged-from-glider/ga_*.mrg,0,0,0,0,GA05MOAS-PG580-04-FLORTO000,telemetered,Missing,No parser,NaN
+GA05MOAS-PG580_D00001_ingest.csv,GA05MOAS,001,#Ingest.nutnr-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG580/D00001/merged-from-glider/ga_*.mrg,0,0,0,0,GA05MOAS-PG580-05-NUTNRM000,telemetered,Missing,No data on server,NaN
+GA05MOAS-PG580_D00001_ingest.csv,GA05MOAS,001,#Ingest.parad-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG580/D00001/merged-from-glider/ga_*.mrg,0,0,0,0,GA05MOAS-PG580-06-PARADM000,telemetered,Missing,No data on server,NaN

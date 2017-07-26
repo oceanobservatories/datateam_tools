@@ -1,0 +1,9 @@
+refdes_list,method_list,type_list,parserDriver_list
+GA05MOAS-GL496-00-ENG000000,recovered_host,Engineering,mi.dataset.driver.glider.glider_eng_glider_recovered_driver
+GA05MOAS-GL496-00-ENG000000,telemetered,Engineering,mi.dataset.driver.glider.glider_eng_glider_telemetered_driver
+GA05MOAS-GL496-01-FLORDM000,recovered_host,Science,mi.dataset.driver.glider.flord_m_glider_recovered_driver
+GA05MOAS-GL496-01-FLORDM000,telemetered,Science,mi.dataset.driver.glider.flord_m_glider_telemetered_driver
+GA05MOAS-GL496-02-DOSTAM000,recovered_host,Science,mi.dataset.driver.glider.dosta_abcdjm_glider_recovered_driver
+GA05MOAS-GL496-02-DOSTAM000,telemetered,Science,mi.dataset.driver.glider.dosta_abcdjm_glider_telemetered_driver
+GA05MOAS-GL496-04-CTDGVM000,recovered_host,Science,mi.dataset.driver.glider.ctdgv_m_glider_recovered_driver
+GA05MOAS-GL496-04-CTDGVM000,telemetered,Science,mi.dataset.driver.glider.ctdgv_m_glider_telemetered_driver

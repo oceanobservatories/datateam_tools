@@ -1,0 +1,8 @@
+ingest_csv_filename,platform,deployment#,uframe_route,filename_mask,number_files,file of today,file <= 1k,file > 1K,reference_designator,data_source,Automated_status,status,notes
+GA05MOAS-PG578_D00001_ingest.csv,GA05MOAS,001,Ingest.glider-eng-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG578/D00001/merged-from-glider/ga_*.mrg,1320,0,0,1320,GA05MOAS-PG578-00-ENG000000,telemetered,Available,,NaN
+GA05MOAS-PG578_D00001_ingest.csv,GA05MOAS,001,Ingest.ctdgv-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG578/D00001/merged-from-glider/ga_*.mrg,1320,0,0,1320,GA05MOAS-PG578-01-CTDGVM000,telemetered,Available,,NaN
+GA05MOAS-PG578_D00001_ingest.csv,GA05MOAS,001,Ingest.dosta-abcdjm-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG578/D00001/merged-from-glider/ga_*.mrg,1320,0,0,1320,GA05MOAS-PG578-02-DOSTAM000,telemetered,Available,,NaN
+GA05MOAS-PG578_D00001_ingest.csv,GA05MOAS,001,Ingest.flort-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG578/D00001/merged-from-glider/ga_*.mrg,1320,0,0,1320,GA05MOAS-PG578-03-FLORTM000,telemetered,Available,,NaN
+GA05MOAS-PG578_D00001_ingest.csv,GA05MOAS,001,#Ingest.flort-o-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG578/D00001/merged-from-glider/ga_*.mrg,1320,0,0,1320,GA05MOAS-PG578-04-FLORTO000,telemetered,Available,No parser,NaN
+GA05MOAS-PG578_D00001_ingest.csv,GA05MOAS,001,Ingest.nutnr-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG578/D00001/merged-from-glider/ga_*.mrg,1320,0,0,1320,GA05MOAS-PG578-05-NUTNRM000,telemetered,Available,,NaN
+GA05MOAS-PG578_D00001_ingest.csv,GA05MOAS,001,Ingest.parad-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-PG578/D00001/merged-from-glider/ga_*.mrg,1320,0,0,1320,GA05MOAS-PG578-06-PARADM000,telemetered,Available,,NaN

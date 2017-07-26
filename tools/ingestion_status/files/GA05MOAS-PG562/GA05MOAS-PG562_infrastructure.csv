@@ -1,0 +1,15 @@
+refdes_list,method_list,type_list,parserDriver_list
+GA05MOAS-PG562-00-ENG000000,recovered_host,Engineering,mi.dataset.driver.glider.glider_eng_glider_recovered_driver
+GA05MOAS-PG562-00-ENG000000,telemetered,Engineering,mi.dataset.driver.glider.glider_eng_glider_telemetered_driver
+GA05MOAS-PG562-01-CTDGVM000,recovered_host,Science,mi.dataset.driver.glider.ctdgv_m_glider_recovered_driver
+GA05MOAS-PG562-01-CTDGVM000,telemetered,Science,mi.dataset.driver.glider.ctdgv_m_glider_telemetered_driver
+GA05MOAS-PG562-02-DOSTAM000,recovered_host,Science,mi.dataset.driver.glider.dosta_abcdjm_glider_recovered_driver
+GA05MOAS-PG562-02-DOSTAM000,telemetered,Science,mi.dataset.driver.glider.dosta_abcdjm_glider_telemetered_driver
+GA05MOAS-PG562-03-FLORTM000,recovered_host,Science,mi.dataset.driver.glider.flort_m_glider_recovered_driver
+GA05MOAS-PG562-03-FLORTM000,telemetered,Science,mi.dataset.driver.glider.flort_m_glider_telemetered_driver
+GA05MOAS-PG562-04-FLORTO000,recovered_host,Science,mi.dataset.driver.glider.flort_m_glider_recovered_driver
+GA05MOAS-PG562-04-FLORTO000,telemetered,Science,mi.dataset.driver.glider.flort_m_glider_telemetered_driver
+GA05MOAS-PG562-05-NUTNRM000,recovered_host,Science,mi.dataset.driver.nutnr_m.nutnr_m_recovered_driver
+GA05MOAS-PG562-05-NUTNRM000,telemetered,Science,mi.dataset.driver.glider.nutnr_m_glider_telemetered_driver
+GA05MOAS-PG562-06-PARADM000,recovered_host,Science,mi.dataset.driver.glider.parad_m_glider_recovered_driver
+GA05MOAS-PG562-06-PARADM000,telemetered,Science,mi.dataset.driver.glider.parad_m_glider_telemetered_driver

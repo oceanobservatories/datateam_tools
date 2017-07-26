@@ -1,0 +1,5 @@
+ingest_csv_filename,platform,deployment#,uframe_route,filename_mask,number_files,file of today,file <= 1k,file > 1K,reference_designator,data_source,Automated_status,status,notes
+GA05MOAS-GL470_D00001_ingest.csv,GA05MOAS,001,Ingest.glider-eng-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-GL470/D00001/merged-from-glider/ga_*.mrg,996,0,0,996,GA05MOAS-GL470-00-ENG000000,telemetered,Available,NaN,NaN
+GA05MOAS-GL470_D00001_ingest.csv,GA05MOAS,001,Ingest.flord-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-GL470/D00001/merged-from-glider/ga_*.mrg,996,0,0,996,GA05MOAS-GL470-01-FLORDM000,telemetered,Available,NaN,NaN
+GA05MOAS-GL470_D00001_ingest.csv,GA05MOAS,001,Ingest.dosta-abcdjm-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-GL470/D00001/merged-from-glider/ga_*.mrg,996,0,0,996,GA05MOAS-GL470-02-DOSTAM000,telemetered,Available,NaN,NaN
+GA05MOAS-GL470_D00001_ingest.csv,GA05MOAS,001,Ingest.ctdgv-m-glider_telemetered,/omc_data/whoi/OMC/GA05MOAS-GL470/D00001/merged-from-glider/ga_*.mrg,996,0,0,996,GA05MOAS-GL470-04-CTDGVM000,telemetered,Available,NaN,NaN
