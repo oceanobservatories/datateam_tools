@@ -15,9 +15,9 @@ This script merge multiple files
 '''
 platform = 'CP01CNSM'
 file5 = '/Users/leila/Documents/OOI_GitHub_repo/repos/ooi-integration/asset-management/deployment/' + platform + '_Deploy.csv'
-filed = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '_infrastructure.csv'
-file6 = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '_17-07-2017_rawfiles_query.csv'
-ofile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '_17-07-2017_rawfiles_status.csv'
+filed = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '/data/' + platform + '_infrastructure.csv'
+file6 = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '/data/' + platform +'_17-07-2017_rawfiles_query.csv'
+ofile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '/data/' + platform + '_17-07-2017_rawfiles_status.csv'
 
 # merge with sensor_bulk_load 'refdes_list','method_list'
 rfd = pd.read_csv(filed)

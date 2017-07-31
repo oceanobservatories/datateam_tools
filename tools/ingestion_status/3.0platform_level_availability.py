@@ -23,13 +23,10 @@ rootdir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestp
 # select the ingestion file example _D00003_ingest.csv or leave it as generic _ingest.csv
 key_file = '_P.csv'
 # headers' name for ingestion files
-col_header= ['Automated_status', 'data_source', 'deployment#', 'count', 'total', 'percent', 'note']
+col_header= ['data_source', 'deployment#', 'Available', 'percenta','Missing','percentm','note']
 
-# directory = os.path.dirname(rootdir+platform+'/')
-# if not os.path.exists(directory):
-#         os.makedirs(directory)
+df = pd.DataFrame(columns=col_header)
 
-# df = pd.DataFrame()
 for item in os.listdir(rootdir):
     if item.startswith(platform):
         if item.endswith(key_file):
@@ -40,6 +37,7 @@ for item in os.listdir(rootdir):
                     status_list = list(pd.unique(filereader['Automated_status'].ravel()))
                     deploy_list = list(pd.unique(filereader['deployment#'].ravel()))
                     method_list = list(pd.unique(filereader['data_source'].ravel()))
+
                     for methodx in method_list:
                         #print methodx
                         ind0 = filereader.loc[(filereader['data_source'] == methodx)]
@@ -56,44 +54,49 @@ for item in os.listdir(rootdir):
                                 count = len(ind2)
 
                                 if statusx == 'Not Deployed':
-                                    print 'Not Deployed found ', len(ind2)
+                                    # print 'Not Deployed found ', len(ind2)
                                     counta += len(ind2)
                                 if statusx == 'Not Expected':
-                                    print 'Not Expected found ', len(ind2)
+                                    # print 'Not Expected found ', len(ind2)
                                     counta += len(ind2)
                                 if statusx == 'Pending':
-                                    print 'Pending found ', len(ind2)
+                                    # print 'Pending found ', len(ind2)
                                     counta += len(ind2)
                                 if statusx == 'Available':
-                                    print 'Available found ', len(ind2)
+                                    # print 'Available found ', len(ind2)
                                     counta += len(ind2)
 
                                 if statusx == 'Missing':
-                                    print 'Missing found ', len(ind2)
+                                    # print 'Missing found ', len(ind2)
                                     countm = len(ind2)
 
                                 if total != 0:
-                                    percent = (count/total) * 100
+                                    percent = round((count/total) * 100)
                                     note = ''
                                 else:
-                                    note = 'integer division or module by zero'
+                                    note = 'Active deployment'
                                     percent = total
                                 # print methodx, '...', deployx, '...', statusx, '...', count, '...', percent, '%', '....', note
 
 
                             if total != 0:
-                                percenta = (counta/total) * 100
-                                percentm = (countm/total) * 100
+                                percenta = round((counta/total) * 100)
+                                percentm = round((countm/total) * 100)
                                 note = ''
                             else:
-                                note = 'integer division or module by zero'
+                                note = 'Active deployment'
                                 percenta = total
                                 percentm = total
 
-                            print methodx, '...', deployx, 'Available', counta, '...', percenta, '%', '....', note
-                            print methodx, '...', deployx, 'Missing', countm, '...', percentm, '%', '....', note
+                            # print methodx, '...', deployx, 'Available', counta, '...', percenta, '%', '....', note
+                            # print methodx, '...', deployx, 'Missing', countm, '...', percentm, '%', '....', note
+                            df1 = pd.DataFrame([[methodx, deployx, counta, percenta, countm, percentm, note]], columns=col_header)
+                            print 'df1', df1.values
+                            df = df.append(df1)
+                            print 'df', df.values
+                            # print df
 
-                    outputfile = rootdir + platform + '/' + platform + 'availability_state.csv'
-                    print outputfile
 
-                    ind2.to_csv(outputfile, index=False, columns=col_header, na_rep='', encoding='utf-8')
+                outputfile = rootdir + platform + '/statistics/' + platform + '_availability_state.csv'
+                # print outputfile
+                df.to_csv(outputfile, index=False, columns=col_header, na_rep='', encoding='utf-8')

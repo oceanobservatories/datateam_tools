@@ -1,11 +1,11 @@
 Raw Data Status:
 
-Create the status file to complete the status column before creating the timelines.
+Create the status file to complete the Automated_status column before creating the availability level status files.
 
-(1) run infrastructure.py
-(2) run ingest_append.py
-(3) run status.py
-(4) open “*_status_file.csv” and verify and complete the status and note columns 
+(1) run infrastructure.py [read the database and extract the baseline for a platform]
+(2) run file_count_server.py [loop through the ingest.csv file mask column and hit the raw data server to return a count of available files]
+(3) run status.py [merge deployment and ingest files to create a status file]
+(4) open “*_status_file.csv” verify the status and note columns and complete the Automated_status column
 	(4.1) investigate and resolve instrument(s) status. Use status_Key.csv for status definition.
 	(4.2) Fill in the gaps of the start and end date columns:
 	        (a) some instruments were left out of the deployment sheet when not deployed.

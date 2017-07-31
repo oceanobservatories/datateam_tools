@@ -119,5 +119,5 @@ df['parserDriver_list'] = parserDriver_list
 
 column_list = ['refdes_list', 'method_list', 'type_list', 'parserDriver_list']
 
-outputfile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + filename + '_infrastructure.csv'
+outputfile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + filename + '/data/' + filename + '_infrastructure.csv'
 df.to_csv(outputfile, index=False, columns=column_list, na_rep='NaN', encoding='utf-8')

@@ -51,7 +51,7 @@ for item in os.listdir(rootdir):
                         df = df.append(ind_r)
 
 
-                    outputfile = rootdir + 'deployment/' + platform + '_Deploy.csv'
+                    outputfile = rootdir + platform + '/deploy/' + platform + '_Deploy.csv'
                     print outputfile
 
                     df.to_csv(outputfile, index=False, columns=ingestion_header, na_rep='', encoding='utf-8')

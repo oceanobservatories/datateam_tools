@@ -47,7 +47,7 @@ for item in os.listdir(rootdir):
                         filename = ind_r['ingest_csv_filename']
                         print filename.values[0]
 
-                        outputfile = rootdir + platform + '/' + filename.values[0]
+                        outputfile = rootdir + platform + '/ingest/' + filename.values[0]
                         print outputfile
 
                         ind_r.to_csv(outputfile, index=False, columns=ingestion_header, na_rep='', encoding='utf-8')

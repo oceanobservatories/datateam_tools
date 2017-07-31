@@ -181,7 +181,7 @@ for root, dirs, files in os.walk(rootdir):
                                   'number_files', 'file of today','file <= 1k', 'file > 1K',
                                   'reference_designator', 'data_source','Automated_status','status', 'notes']
                 created_on = datein.strftime("%d-%m-%Y")
-                outputfile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + item + '_' + created_on + '_rawfiles_query' + ingestion_file.split('_ingest.csv')[0] +'.csv'
+                outputfile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + item + '/data/' + item + '_' + created_on + '_rawfiles_query' + ingestion_file.split('_ingest.csv')[0] +'.csv'
                 df.to_csv(outputfile, index=False, columns=mooring_header, na_rep='NaN', encoding='utf-8')
 
 print "time elapsed: {:.2f}s".format(time.time() - start_time)
