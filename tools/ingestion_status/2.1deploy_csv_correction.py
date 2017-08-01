@@ -16,15 +16,16 @@ start_time = time.time()
 This script recreate the ingestion and deployment sheets
 '''
 # select the platform
-platform = 'CP01CNSM'
+platform = 'CP03ISSM'
 # path to baseline file
-rootdir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
+maindir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
+rootdir = maindir + platform + '/data/'
 # select the ingestion file example _D00003_ingest.csv or leave it as generic _ingest.csv
 key_file = '_P.csv'
 # headers' name for ingestion files
-ingestion_header= ['CUID_Deploy', 'deployedBy', 'CUID_Recover', 'recoveredBy', 'reference_designator', 'deploymentNumber',
+ingestion_header= ['CUID_Deploy', 'deployedBy', 'CUID_Recover', 'recoveredBy', 'Reference Designator', 'deploymentNumber',
                    'versionNumber', 'startDateTime', 'stopDateTime', 'mooring.uid', 'node.uid',
-                   'sensor.uid', 'lat', 'lon', 'orbit', 'deployment_depth', 'water_depth','notes_y']
+                   'sensor.uid', 'lat', 'lon', 'orbit', 'deployment_depth', 'water_depth','notes']
 
 # directory = os.path.dirname(rootdir+platform+'/')
 # if not os.path.exists(directory):
@@ -39,19 +40,20 @@ for item in os.listdir(rootdir):
                 with open(os.path.join(rootdir, item), 'r') as csv_file:
                     filereader = pd.read_csv(csv_file)
                     filereader = filereader.rename(columns={'deployment#': 'deploymentNumber'})
+                    filereader = filereader.rename(columns={'reference_designator': 'Reference Designator'})
                     deployment_list = list(pd.unique(filereader['deploymentNumber'].ravel()))
                     print deployment_list
                     for deploymentx in deployment_list:
                         print deploymentx
                         ind_r = filereader.loc[(filereader['deploymentNumber'] == deploymentx)]
                         print 'before', len(ind_r)
-                        ind_r = ind_r.drop_duplicates(subset='reference_designator',keep='first')
+                        ind_r = ind_r.drop_duplicates(subset='Reference Designator',keep='first')
                         print 'after', len(ind_r)
 
                         df = df.append(ind_r)
 
 
-                    outputfile = rootdir + platform + '/deploy/' + platform + '_Deploy.csv'
+                    outputfile = maindir + platform + '/deploy/' + platform + '_Deploy.csv'
                     print outputfile
 
                     df.to_csv(outputfile, index=False, columns=ingestion_header, na_rep='', encoding='utf-8')

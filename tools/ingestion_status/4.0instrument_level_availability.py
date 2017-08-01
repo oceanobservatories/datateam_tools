@@ -17,9 +17,10 @@ start_time = time.time()
 This script recreate the ingestion and deployment sheets
 '''
 # select the platform
-platform = 'CP01CNSM'
+platform = 'CP03ISSM'
 # path to baseline file
-rootdir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
+maindir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
+rootdir = maindir + platform + '/data/'
 # select the ingestion file example _D00003_ingest.csv or leave it as generic _ingest.csv
 key_file = '_P.csv'
 # headers' name for ingestion files
@@ -43,7 +44,7 @@ for item in os.listdir(rootdir):
                         df_info = pd.DataFrame(columns=col_header)
                         ind0 = filereader.loc[(filereader['reference_designator'] == refdesx)]
                         df_info = df_info.append(ind0)
-                        outfile1 = rootdir + platform + '/statistics/instrument/' + refdesx + '_availability_info.csv'
+                        outfile1 = maindir + platform + '/statistics/instrument/' + refdesx + '_availability_info.csv'
                         df_info.to_csv(outfile1, index=False, columns=col_header_info, na_rep='', encoding='utf-8')
                         for methodx in method_list:
                             #print methodx
@@ -116,7 +117,7 @@ for item in os.listdir(rootdir):
                                 print 'df', df.values
 
 
-                        outfile0 = rootdir + platform + '/statistics/instrument/' + refdesx + '_availability_state.csv'
+                        outfile0 = maindir + platform + '/statistics/instrument/' + refdesx + '_availability_state.csv'
                         # print outputfileind3['status'].values
                         df.to_csv(outfile0, index=False, columns=col_header, na_rep='', encoding='utf-8')
 

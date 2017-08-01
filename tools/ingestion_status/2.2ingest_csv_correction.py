@@ -16,19 +16,16 @@ start_time = time.time()
 This script recreate the ingestion and deployment sheets
 '''
 # select the platform
-platform = 'CP01CNSM'
+platform = 'CP03ISSM'
 # path to baseline file
-rootdir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
+maindir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
+rootdir = maindir + platform +'/data/'
 # select the ingestion file example _D00003_ingest.csv or leave it as generic _ingest.csv
 key_file = '_P.csv'
 # headers' name for ingestion files
 ingestion_header= ['uframe_route', 'filename_mask', 'reference_designator', 'data_source','status','notes']
 
-# directory = os.path.dirname(rootdir+platform+'/')
-# if not os.path.exists(directory):
-#         os.makedirs(directory)
 
-# df = pd.DataFrame()
 for item in os.listdir(rootdir):
     if item.startswith(platform):
         if item.endswith(key_file):
@@ -47,7 +44,7 @@ for item in os.listdir(rootdir):
                         filename = ind_r['ingest_csv_filename']
                         print filename.values[0]
 
-                        outputfile = rootdir + platform + '/ingest/' + filename.values[0]
+                        outputfile = maindir + platform + '/ingest/' + filename.values[0]
                         print outputfile
 
                         ind_r.to_csv(outputfile, index=False, columns=ingestion_header, na_rep='', encoding='utf-8')
