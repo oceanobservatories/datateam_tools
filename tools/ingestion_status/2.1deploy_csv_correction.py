@@ -16,7 +16,7 @@ start_time = time.time()
 This script recreate the ingestion and deployment sheets
 '''
 # select the platform
-platform = 'CP03ISSM'
+platform = 'CP05MOAS-GL336'
 # path to baseline file
 maindir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
 rootdir = maindir + platform + '/data/'
@@ -41,6 +41,7 @@ for item in os.listdir(rootdir):
                     filereader = pd.read_csv(csv_file)
                     filereader = filereader.rename(columns={'deployment#': 'deploymentNumber'})
                     filereader = filereader.rename(columns={'reference_designator': 'Reference Designator'})
+                    filereader = filereader.rename(columns={'notes_y': 'notes'})
                     deployment_list = list(pd.unique(filereader['deploymentNumber'].ravel()))
                     print deployment_list
                     for deploymentx in deployment_list:
