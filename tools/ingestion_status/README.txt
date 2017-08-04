@@ -21,7 +21,7 @@ Create the status file to complete the Automated_status column before creating t
 	        (b) add notes to indicate "Not Deployed" or "add sensor UID"
 	        (a) when applicable fill in the rows with: start and stop date/time, mooring UID, lat, lon, deployment and water depth
 (5) recreate the deployment and ingest csv files
-(6) calculate a percent of data availability on the plaform and instrument levels
+(6) calculate a percent of data availability on the platform and instrument levels
 (7) run timelines.py
 	(5.1) Deployment Start and End dates are indicated by arrows on the x-axis
 	(5.2) see Status_Key.csv for colors and labels combinations
