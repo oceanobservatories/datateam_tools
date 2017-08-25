@@ -10,10 +10,11 @@ import pandas as pd
 import numpy as np
 import os
 
-platform_name = 'CP05MOAS'
+site_name = 'Endurance'
+platform_name = 'CE02SHSP'
+# if glider add the GL number
 glider_name = 'GL388'
 filed = '/Users/leila/Documents/OOI_GitHub_repo/repos/Sage_seagrinch/data-team-python/infrastructure/' + 'data_streams.csv'
-
 
 rfd = pd.read_csv(filed)
 rfd.fillna('', inplace=True)
@@ -119,5 +120,14 @@ df['parserDriver_list'] = parserDriver_list
 
 column_list = ['refdes_list', 'method_list', 'type_list', 'parserDriver_list']
 
-outputfile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + filename + '/data/' + filename + '_infrastructure.csv'
+path = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/' + site_name + '/' + filename + '/'
+
+try:
+    os.makedirs(path)
+    os.makedirs(path + '/statistics/')
+except OSError:
+    if not os.path.isdir(path):
+        raise
+
+outputfile = path + filename + '_infrastructure.csv'
 df.to_csv(outputfile, index=False, columns=column_list, na_rep='NaN', encoding='utf-8')

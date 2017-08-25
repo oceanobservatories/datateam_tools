@@ -15,13 +15,16 @@ start_time = time.time()
 '''
 This script recreate the ingestion and deployment sheets
 '''
+# select a site
+site = 'SouthernOcean'
 # select the platform
-platform = 'CP05MOAS-GL336'
+platform = 'GS05MOAS-PG566'
+
 # path to baseline file
-maindir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/'
-rootdir = maindir + platform + '/data/'
+maindir = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/' + site + '/'
+rootdir  = maindir + platform + '/'
 # select the ingestion file example _D00003_ingest.csv or leave it as generic _ingest.csv
-key_file = '_P.csv'
+key_file = '_LG.csv'
 # headers' name for ingestion files
 ingestion_header= ['CUID_Deploy', 'deployedBy', 'CUID_Recover', 'recoveredBy', 'Reference Designator', 'deploymentNumber',
                    'versionNumber', 'startDateTime', 'stopDateTime', 'mooring.uid', 'node.uid',
@@ -54,7 +57,7 @@ for item in os.listdir(rootdir):
                         df = df.append(ind_r)
 
 
-                    outputfile = maindir + platform + '/deploy/' + platform + '_Deploy.csv'
+                    outputfile = rootdir + '/deploy/' + platform + '_Deploy.csv'
                     print outputfile
 
                     df.to_csv(outputfile, index=False, columns=ingestion_header, na_rep='', encoding='utf-8')

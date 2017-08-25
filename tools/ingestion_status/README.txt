@@ -10,16 +10,20 @@ Create the status file to complete the Automated_status column before creating t
 	 (4.1) merge note_(x,y) and status columns under status
 	 (4.2) filter the compare column on false to reconcile between file mask and ingest.csv filename. Change False to True for future reference.
 	 (4.3) check uncommented lines to have 0 files on the server and vice versa
-	 (4.4) filter on reference designator and data_source to check the number of rows per instrument == number of deployments
+	 (4.4) fill in the gaps for columns data source and type_list
+	 (4.5) filter on reference designator and data_source to check if the number of rows per instrument == number of deployments
 	       (Note: the count in telemetered is usually ahead by one because recovered ingest.csv files get created on the next deployment)
-     (4.4) use status_Key.csv to complete the automated status column
-        (a) filter on the number_files
-        (b) verify status across method for an instrument (e.g. Not Deployed should be applied to all method for an instrument)
-        (c) mark the recovered data of the cruise before last as Missing if the number of files == 0
-	 (4.5) filer on deployment# and add not deployed and/or missing instruments to deployment columns:
+     (4.6) filter on the number_files to complete the automated status column using the status_Key.csv file
+        (a) verify status across method for an instrument (e.g. Not Deployed should be applied to all method for an instrument)
+        (b) mark the recovered data of the cruise before last as Missing if the number of files == 0
+	 (4.7) filer on deployment# to:
+	    (4.7.1) add not deployed and/or missing instruments to deployment columns:
 	        (b) comment out the line using  the CUID_Deploy column if instrument not deployed or missing a UID
 	        (b) add notes to indicate "Not Deployed" or "add sensor UID"
 	        (a) when applicable fill in the rows with: start and stop date/time, mooring UID, lat, lon, deployment and water depth
+	    (4.7.2) add to the reference designators column:
+	        (a) Instrument not set to send data via telemetry if missing from the ingest.csv files (e.g case of an ADCP on a glider)
+	        (b) any other cases of instrument missing from deployment or ingest files
 (5) recreate the deployment and ingest csv files
 (6) calculate a percent of data availability on the platform and instrument levels
 (7) run timelines.py

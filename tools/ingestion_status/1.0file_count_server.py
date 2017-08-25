@@ -15,25 +15,37 @@ start_time = time.time()
 '''
 This script combines all/or selected ingestion sheets found in GitHub repo:
 https://github.com/ooi-integration/ingestion-csvs
+# used for: (1) output file created on
+#           (2) check raw data files created today
 '''
+
+
 # path to local copy of ingestion-csvs repo
 rootdir = '/Users/leila/Documents/OOI_GitHub_repo/repos/ooi-integration/ingestion-csvs/'
-# select the platform
-ingest_key = 'CE04OSPD' #CE04OSPS
 # select the ingestion file example _D00003_ingest.csv or leave it as generic _ingest.csv
 ingestion_file = '_ingest.csv'
 # path to data file on the raw data repo
 dav_mount = '/Volumes/dav/'
-
 # path modification variables to match to system data file paths
 splitter = '/OMC/'
 splitter_C = '/rsn_data/DVT_Data/'
 splitter_CC = '/RSN/'
 
-# used for: (1) output file created on
-#           (2) check raw data files created today
+# select a site
+site_name = 'Endurance'
+# select a platform
+ingest_key = 'CE02SHSM'#'CE02SHBP' #CE01ISSP
+# locate data file
+main = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/' + site_name + '/'
+
+# create output file
+outputfile = main + ingest_key + '/'
+
+# timestamp the output files
 datein = pd.to_datetime('today')
 
+
+# start script
 df = pd.DataFrame()
 for root, dirs, files in os.walk(rootdir):
     for item in dirs:
@@ -181,7 +193,7 @@ for root, dirs, files in os.walk(rootdir):
                                   'number_files', 'file of today','file <= 1k', 'file > 1K',
                                   'reference_designator', 'data_source','Automated_status','status', 'notes']
                 created_on = datein.strftime("%d-%m-%Y")
-                outputfile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + item + '/data/' + item + '_' + created_on + '_rawfiles_query' + ingestion_file.split('_ingest.csv')[0] +'.csv'
+                outputfile = main + item + '/' + item + '_' + created_on + '_rawfiles_query' + ingestion_file.split('_ingest.csv')[0] +'.csv'
                 df.to_csv(outputfile, index=False, columns=mooring_header, na_rep='NaN', encoding='utf-8')
 
 print "time elapsed: {:.2f}s".format(time.time() - start_time)

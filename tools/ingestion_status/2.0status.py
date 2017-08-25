@@ -13,11 +13,12 @@ import os
 '''
 This script merge multiple files
 '''
-platform = 'CP01CNSM'
+site = 'Endurance'
+platform = 'CE01ISSM'
 file5 = '/Users/leila/Documents/OOI_GitHub_repo/repos/ooi-integration/asset-management/deployment/' + platform + '_Deploy.csv'
-filed = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '/data/' + platform + '_infrastructure.csv'
-file6 = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '/data/' + platform +'_17-07-2017_rawfiles_query.csv'
-ofile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/000_ingestpy_run_results/' + platform + '/data/' + platform + '_17-07-2017_rawfiles_status.csv'
+filed = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/' + site + '/' + platform + '/' + platform + '_infrastructure.csv'
+file6 = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/' + site + '/' + platform + '/' + platform +'_14-08-2017_rawfiles_query.csv'
+ofile = '/Users/leila/Documents/OOI_GitHub_repo/work/ingest-status/' + site + '/' + platform + '/' + platform + '_14-08-2017_rawfiles_status.csv'
 
 # merge with sensor_bulk_load 'refdes_list','method_list'
 rfd = pd.read_csv(filed)
@@ -30,7 +31,7 @@ sbl5 = sbl.rename(columns={'deploymentNumber': 'deployment#'})
 
 rf6 = pd.read_csv(file6)
 
-mf56 = pd.merge(rf6, sbl5, on=['reference_designator','deployment#'], how='left')
+mf56 = pd.merge(rf6, sbl5, on=['reference_designator','deployment#'], how='outer')
 
 mf56d = pd.merge(sbld, mf56, on=['reference_designator','data_source'], how='outer')
 
