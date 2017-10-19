@@ -424,8 +424,12 @@ def main(url, save_dir):
         data['deployments'][d]['data_times']['start'] = data['deployments'][d]['data_times']['start'][0]
         data['deployments'][d]['data_times']['end'] = data['deployments'][d]['data_times']['end'][-1]
 
-    make_dir(save_dir)
-    save_file = os.path.join(save_dir, '{}-{}-{}-{}__{}-{}__requested_{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], splitter[0]))
+    #make_dir(save_dir)
+
+    json_dir = (os.path.join(save_dir, 'json_output'))
+    make_dir(json_dir)
+
+    save_file = os.path.join(json_dir, '{}-{}-{}-{}__{}-{}__requested_{}.json'.format(splitter[1], splitter[2], splitter[3], splitter[4], splitter[5], splitter[6], splitter[0]))
     with open(save_file, 'w') as outfile:
         json.dump(data,outfile)
     return save_file

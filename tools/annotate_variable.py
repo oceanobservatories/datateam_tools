@@ -213,27 +213,19 @@ def main(dataset, save_dir, user):
     file = open(dataset, 'r')
     data = json.load(file)
     ref_des = data.get('ref_des')
-    site = ref_des.split('-')[0]
 
-    make_dir(save_dir)
-    site_dir = os.path.join(save_dir, site)
-    make_dir(site_dir)  # make the site directory
-
-    refdes_dir = os.path.join(site_dir, ref_des)
-    make_dir(refdes_dir)  # make the ref des directory
-
-    drafts_dir = os.path.join(refdes_dir, 'internal_drafts')
+    drafts_dir = os.path.join(save_dir, 'file_analysis')
     make_dir(drafts_dir)
 
     stream_name = dataset.split('/')[-1].split('-')[-1].split('__requested')[0]
     delivered_method = dataset.split('/')[-1].split('__')[1].split('-')[0]
 
-    parameter_file = os.path.join(refdes_dir, '{}-parameters.csv'.format(delivered_method + '-' + stream_name))
-    parameter_file_draft = os.path.join(drafts_dir, '{}-parameters_processed_on-{}.csv'.format(delivered_method + '-' + stream_name, t_now))
-    parameter_issues_draft = os.path.join(drafts_dir, '{}-parameter_issues_processed_on-{}.csv'.format(delivered_method + '-' + stream_name, t_now))
+    # parameter_file = os.path.join(save_dir, '{}-parameters.csv'.format(delivered_method + '-' + stream_name))
+    parameter_file_draft = os.path.join(drafts_dir, '{}-parameters_processed_on-{}.csv'.format(ref_des + '-' + delivered_method + '-' + stream_name, t_now))
+    parameter_issues_draft = os.path.join(drafts_dir, '{}-parameter_issues_processed_on-{}.csv'.format(ref_des + '-' + delivered_method + '-' + stream_name, t_now))
 
 
-    print 'Processing {} issues into internal draft parameter csv files '.format(dataset)
+    #print 'Processing {} issues into internal draft parameter csv files '.format(dataset)
     with open(parameter_file_draft, 'a') as parameter_csv:  # stream-level annotation .csv
         writer = csv.writer(parameter_csv)
         writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Status', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
@@ -243,7 +235,7 @@ def main(dataset, save_dir, user):
 
             annotate_variable(data, parameter_csv, parameter_issues_csv, stream_name, review_date, user)
 
-    shutil.copyfile(parameter_file_draft, parameter_file)
+    # shutil.copyfile(parameter_file_draft, parameter_file)
 
 if __name__ == '__main__':
     #dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-03-CTDPFK000__recovered_wfp-ctdpf_ckl_wfp_instrument_recovered__requested-20170517T223350.json'

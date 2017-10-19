@@ -1,18 +1,17 @@
 """
 Created on Oct 17 2017
-
 @author: lgarzio
-@brief: This script is used to export all annotations from uFrame associated with a reference designator
+@brief: This script is used to export all annotations from uFrame to a csv
 @usage:
 username: username to access the OOI API
 token: password to access the OOI API
 saveDir: location to save output
-refdes: Reference designator of interest
 """
 
 import requests
 import os
 import csv
+from datetime import datetime
 
 
 def get_ids(username, token):
@@ -47,44 +46,44 @@ def get_ids(username, token):
                 start_id = ids[-1] + 1
 
 
-def refdes_annotations(username, token, refdes, frefdes):
+def write_annotations(username, token, f):
+    '''
+    :param username: OOI API username
+    :param token: OOI API password
+    :param f: csv file to which annotations are written
+    :return: csv file containing all annotations from uFrame
+    '''
     anno_url = 'https://ooinet.oceanobservatories.org/api/m2m/12580/anno/'
     loop_ids = get_ids(username, token)
     session = requests.session() # open the connection and leave it open for the session
-
-    subsite = refdes.split('-')[0]
-    node = refdes.split('-')[1]
-    sensor = refdes.split('-')[2] + '-' + refdes.split('-')[3]
 
     for x in loop_ids:
         url = anno_url + str(x)
         anno = session.get(url, auth=(username, token))
         if anno.status_code == 200: # only write info if there is a valid response
             info = anno.json()
-            writer = csv.writer(frefdes)
+            beginDate = datetime.utcfromtimestamp(float(info['beginDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
+            endDate = datetime.utcfromtimestamp(float(info['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
+            writer = csv.writer(f)
             newline = [info['id'],info['subsite'],info['node'],info['sensor'],info['stream'],info['method'],
-                       info['parameters'],info['annotation'].encode('utf-8'),info['beginDT'],info['endDT'],info['exclusionFlag'],
-                       info['source']]
-            if info['subsite'] == subsite and info['node'] == None and info['sensor'] == None: # get annotations for subsite only
-                writer.writerow(newline)
-            elif info['subsite'] == subsite and info['node'] == node and info['sensor'] == None: # get annotations for node only:
-                writer.writerow(newline)
-            elif info['subsite'] == subsite and info['node'] == node and info['sensor'] == sensor: # get annotations for sensor only
-                writer.writerow(newline)
+                       info['parameters'],beginDate,endDate,info['beginDT'],info['endDT'],info['exclusionFlag'],
+                       info['source'],info['annotation'].encode('utf-8')]
+            writer.writerow(newline)
 
 
-def main(username, token, saveDir, refdes):
-    fNrefdes = refdes + '_annotations.csv'
-    fNrefdes = os.path.join(saveDir,fNrefdes) # file for all annotations for a refdes
+def main(username, token, saveDir):
+    f = 'all_annotations_%s.csv' % datetime.now().strftime('%Y%m%d')
+    fN = os.path.join(saveDir,f)
 
-    with open(fNrefdes, 'a') as frefdes:
-        writer = csv.writer(frefdes)
-        writer.writerow(['id','subsite','node','sensor','stream','method','parameters','annotation','beginDT','endDT','exclusionFlag','source'])
-        refdes_annotations(username, token, refdes, frefdes)
+    with open(fN, 'a') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(['id','subsite','node','sensor','stream','method','parameters','beginDate','endDate',
+                         'beginDT','endDT','exclusionFlag','source','annotation'])
+        write_annotations(username, token, outfile)
+
 
 if __name__ == '__main__':
     username = 'username'
     token = 'password'
-    saveDir = 'path_to_local_directory'
-    refdes = 'GS01SUMO-SBD12-08-FDCHPA000'
-    main(username, token, saveDir, refdes)
+    saveDir = '/path/to/savefile'
+    main(username, token, saveDir)

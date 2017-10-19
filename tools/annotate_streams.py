@@ -199,27 +199,19 @@ def main(dataset, save_dir, user):
     file = open(dataset, 'r')
     data = json.load(file)
     ref_des = data.get('ref_des')
-    site = ref_des.split('-')[0]
 
-    make_dir(save_dir)
-    site_dir = os.path.join(save_dir, site)
-    make_dir(site_dir) # make the site directory
-
-    refdes_dir = os.path.join(site_dir, ref_des)
-    make_dir(refdes_dir) # make the ref des directory
-
-    drafts_dir = os.path.join(refdes_dir, 'internal_drafts')
+    drafts_dir = os.path.join(save_dir, 'file_analysis')
     make_dir(drafts_dir)
 
     stream_name = dataset.split('/')[-1].split('-')[-1].split('__requested')[0]
     delivered_method = dataset.split('/')[-1].split('__')[1].split('-')[0]
 
-    stream_file_draft = os.path.join(drafts_dir, '{}-processed_on-{}.csv'.format(delivered_method + '-' + stream_name,t_now))
-    stream_file = os.path.join(refdes_dir, '{}.csv'.format(delivered_method + '-' + stream_name))
+    stream_file_draft = os.path.join(drafts_dir, '{}-processed_on-{}.csv'.format(ref_des + '-' + delivered_method + '-' + stream_name,t_now))
+    # stream_file = os.path.join(save_dir, '{}.csv'.format(delivered_method + '-' + stream_name))
     stream_file_other = os.path.join(drafts_dir, 'collocated_inst_streams_processed_on-{}.csv'.format(t_now))
-    stream_file_issues = os.path.join(drafts_dir, '{}-issues_processed_on-{}.csv'.format(delivered_method + '-' + stream_name, t_now))
+    stream_file_issues = os.path.join(drafts_dir, '{}-issues_processed_on-{}.csv'.format(ref_des + '-' + delivered_method + '-' + stream_name, t_now))
 
-    print 'Processing {} issues into internal draft stream csv files '.format(dataset,)
+    #print 'Processing {} issues into internal draft stream csv files '.format(dataset,)
     with open(stream_file_draft,'a') as stream_csv: # stream-level annotation .csv
         writer = csv.writer(stream_csv)
         writer.writerow(['Level', 'Deployment', 'StartTime', 'EndTime', 'Annotation', 'Status', 'Redmine#', 'Todo', 'ReviewedBy', 'ReviewedDate'])
@@ -235,7 +227,7 @@ def main(dataset, save_dir, user):
     if os.stat(stream_file_other).st_size < 100:
         os.remove(stream_file_other)
 
-    shutil.copyfile(stream_file_draft, stream_file)
+    # shutil.copyfile(stream_file_draft, stream_file)
 
 if __name__ == '__main__':
     dataset = '/Users/leila/Documents/OOI_GitHub_repo/output/rest_in_class/CP02PMUI-WFP01-01-VEL3DK000__recovered_wfp-vel3d_k_wfp_instrument__requested_20170517T223334.json'
