@@ -63,7 +63,10 @@ def write_annotations(username, token, f):
         if anno.status_code == 200: # only write info if there is a valid response
             info = anno.json()
             beginDate = datetime.utcfromtimestamp(float(info['beginDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
-            endDate = datetime.utcfromtimestamp(float(info['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
+            try:
+                endDate = datetime.utcfromtimestamp(float(info['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
+            except TypeError: # if end date is blank
+                endDate = []
             writer = csv.writer(f)
             newline = [info['id'],info['subsite'],info['node'],info['sensor'],info['stream'],info['method'],
                        info['parameters'],beginDate,endDate,info['beginDT'],info['endDT'],info['exclusionFlag'],

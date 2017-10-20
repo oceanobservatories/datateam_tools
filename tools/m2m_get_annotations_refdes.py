@@ -51,7 +51,10 @@ def write_annotations (username, token, refdes, outfile):
         for d in range(len(data)):
             dd = data[d]
             beginDate = datetime.utcfromtimestamp(float(dd['beginDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
-            endDate = datetime.utcfromtimestamp(float(dd['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
+            try:
+                endDate = datetime.utcfromtimestamp(float(info['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
+            except TypeError: # if end date is blank
+                endDate = []
             writer = csv.writer(outfile)
             writer.writerow([dd['id'],dd['subsite'],dd['node'],dd['sensor'],dd['stream'],dd['method'],dd['parameters'],
                              beginDate,endDate,dd['beginDT'],dd['endDT'],dd['exclusionFlag'],dd['source'],
