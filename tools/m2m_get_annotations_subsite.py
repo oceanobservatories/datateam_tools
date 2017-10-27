@@ -88,7 +88,7 @@ def write_annotations (username, token, refdes_list, outfile):
                         endDate = []
                     writer = csv.writer(outfile)
                     writer.writerow([dd['id'],dd['subsite'],dd['node'],dd['sensor'],dd['stream'],dd['method'],dd['parameters'],
-                                     beginDate,endDate,dd['beginDT'],dd['endDT'],dd['exclusionFlag'],dd['source'],
+                                     beginDate,endDate,dd['beginDT'],dd['endDT'],dd['qcFlag'],dd['exclusionFlag'],dd['source'],
                                      dd['annotation'].encode('utf-8')])
 
 
@@ -99,7 +99,7 @@ def main(username, token, saveDir, subsite):
     with open(fN, 'a') as outfile:
         writer = csv.writer(outfile)
         writer.writerow(['id','subsite','node','sensor','stream','method','parameters','beginDate','endDate',
-                         'beginDT','endDT','exclusionFlag','source','annotation'])
+                         'beginDT','endDT','qcFlag','exclusionFlag','source','annotation'])
         refdes_list = get_refdes_list(username, token, subsite)
         write_annotations(username, token, refdes_list, outfile)
 

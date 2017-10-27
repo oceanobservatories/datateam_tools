@@ -69,8 +69,8 @@ def write_annotations(username, token, f):
                 endDate = []
             writer = csv.writer(f)
             newline = [info['id'],info['subsite'],info['node'],info['sensor'],info['stream'],info['method'],
-                       info['parameters'],beginDate,endDate,info['beginDT'],info['endDT'],info['exclusionFlag'],
-                       info['source'],info['annotation'].encode('utf-8')]
+                       info['parameters'],beginDate,endDate,info['beginDT'],info['endDT'],info['qcFlag'],
+                       info['exclusionFlag'],info['source'],info['annotation'].encode('utf-8')]
             writer.writerow(newline)
 
 
@@ -81,7 +81,7 @@ def main(username, token, saveDir):
     with open(fN, 'a') as outfile:
         writer = csv.writer(outfile)
         writer.writerow(['id','subsite','node','sensor','stream','method','parameters','beginDate','endDate',
-                         'beginDT','endDT','exclusionFlag','source','annotation'])
+                         'beginDT','endDT','qcFlag','exclusionFlag','source','annotation'])
         write_annotations(username, token, outfile)
 
 
