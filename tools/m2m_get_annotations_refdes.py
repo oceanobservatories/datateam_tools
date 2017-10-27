@@ -52,7 +52,7 @@ def write_annotations (username, token, refdes, outfile):
             dd = data[d]
             beginDate = datetime.utcfromtimestamp(float(dd['beginDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
             try:
-                endDate = datetime.utcfromtimestamp(float(info['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
+                endDate = datetime.utcfromtimestamp(float(dd['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
             except TypeError: # if end date is blank
                 endDate = []
             writer = csv.writer(outfile)
@@ -65,7 +65,7 @@ def main(username, token, saveDir, refdes):
     annotations_dir = os.path.join(saveDir, 'uframe_annotations')
     make_dir(annotations_dir)
 
-    f = '%s_annotations_%s.csv' % (refdes, datetime.now().strftime('%Y%m%d'))
+    f = '%s_annotations_%s.csv' % (refdes, datetime.now().strftime('%Y%m%dT%H%M%S'))
     fN = os.path.join(annotations_dir,f)
 
     with open(fN, 'a') as outfile:

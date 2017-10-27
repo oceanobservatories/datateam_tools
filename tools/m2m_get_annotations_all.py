@@ -75,7 +75,7 @@ def write_annotations(username, token, f):
 
 
 def main(username, token, saveDir):
-    f = 'all_annotations_%s.csv' % datetime.now().strftime('%Y%m%d')
+    f = 'all_annotations_%s.csv' % datetime.now().strftime('%Y%m%dT%H%M%S')
     fN = os.path.join(saveDir,f)
 
     with open(fN, 'a') as outfile:
