@@ -10,20 +10,7 @@ appropriate drivers in the ingestion csvs
 import os
 import glob
 import pandas as pd
-from utils.parse_file import find_driver, ParticleHandler, log_timing, monkey_patch_particles, StopWatch
-import urllib2
-import pickle
-
-
-def uframe_routes():
-    """
-    This function loads a pickle file containing all uframe_routes to their proper drivers
-    :return: dictionary containing the uframe_routes to driver
-    :rtype: dictionary
-    """
-    fopen = urllib2.urlopen('https://raw.githubusercontent.com/ooi-data-review/parse_spring_files/master/uframe_routes.pkl')
-    ingest_dict = pickle.load(fopen)
-    return ingest_dict
+from utils.parse_file import find_driver, ParticleHandler, monkey_patch_particles, StopWatch
 
 
 def make_dir(save_dir):
@@ -65,7 +52,6 @@ def main(ingest_file, save_dir, dav_mount, file_format='csv', splitter='/OMC/'):
     """
     base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # base path of this toolbox
     make_dir(save_dir)
-    ingest_dict = uframe_routes()
 
     data = []
     fname = os.path.basename(ingest_file).split('.csv')[0]
@@ -75,7 +61,7 @@ def main(ingest_file, save_dir, dav_mount, file_format='csv', splitter='/OMC/'):
 
     df = pd.read_csv(ingest_file)
     for row in df.itertuples():
-        route = row.uframe_route
+        parser = row.parser
         try:
             web_dir = os.path.join(dav_mount, row.filename_mask.split(splitter)[1])
         except AttributeError:
@@ -83,61 +69,33 @@ def main(ingest_file, save_dir, dav_mount, file_format='csv', splitter='/OMC/'):
 
         refdeg = row.reference_designator
         data_source = row.data_source
-        print 'Ingestion row'
-        if '#' in route:
-            if len(route.strip('#')) is 0:
-                driver = 'N/A'
+
+        if '#' in parser:
+            if len(parser.strip('#')) is 0:
+                data.append((refdeg, data_source, '#', web_dir, 'Parser unavailable in ingestion csv'))
             else:
-                try:
-                    driver = ingest_dict[route]
-                except KeyError:
-                    print 'No spring file/driver exists for the given route.'
-                    driver = 'Does not exist for given route.'
-
-            print 'Reference Designator: %s, Data Source: %s' % (refdeg, data_source)
-            print 'Route: %s, Driver: %s, file_mask: %s' % (route, 'N/A', web_dir)
-            print 'Skipping above due to commented file'
-            print ' '
-            data.append((refdeg, data_source, route, driver, web_dir, '#'))
+                data.append((refdeg, data_source, parser, web_dir, 'Commented out in ingestion csv'))
             continue
-        elif not route:
-            continue
-        else:
-            try:
-                driver = ingest_dict[route]
-            except KeyError:
-                print 'No spring file/driver exists for the given route.'
-                driver = 'Does not exist for given route.'
-                print ' '
-                data.append((refdeg, data_source, route, driver, web_dir, 0))
-                continue
-
-            print 'Reference Designator: %s, Data Source: %s' % (refdeg, data_source)
-            print 'Route: %s, Driver: %s, file_mask: %s' % (route, driver, web_dir)
-            print 'Parsing data'
 
         matches = glob.glob(web_dir)
         if len(matches) > 10:
             matches = matches[:5]
 
         out_rd = os.path.join(new_dir, refdeg); make_dir(out_rd)
-
         out_ds = os.path.join(out_rd, data_source); make_dir(out_ds)
 
-        run(base_path, driver, matches, file_format, out_ds)
+        run(base_path, parser, matches, file_format, out_ds)
         path, dirs, files = os.walk(out_ds).next()
         file_count_new = len(files)
-        print '%i stream files created.' % file_count_new
-        data.append((refdeg, data_source, route, driver, web_dir, file_count_new))
-        print ' '
+        data.append((refdeg, data_source, parser, web_dir, file_count_new))
 
-    df = pd.DataFrame(data, columns=['refdeg', 'data_source', 'uframe_route', 'driver', 'web_dir', 'file_count'])
+    df = pd.DataFrame(data, columns=['refdeg', 'data_source', 'parser', 'web_dir', 'file_count'])
     df.to_csv(os.path.join(save_dir, fname + '-ingest_results.csv'), index=False)
 
 if __name__ == '__main__':
     # change pandas display width to view longer dataframes
-    ingest_file = '/Users/mikesmith/Documents/git/ooi-integration/ingestion-csvs/CE05MOAS-GL311/CE05MOAS-GL311_D00003_ingest.csv'
-    save_dir = '/Users/mikesmith/Documents/git/ooi-integration/ingestion-csvs/CE05MOAS-GL311/'
+    ingest_file = '/Users/mikesmith/Documents/git/ooi-integration/ingestion-csvs/CE01ISSM/CE01ISSM_D00001_ingest.csv'
+    save_dir = '/Users/mikesmith/Documents/git/ooi-integration/ingestion-csvs/CE01ISSM/'
     file_format = 'csv'
     dav_mount = '/Volumes/dav/'
     splitter = '/OMC/'
