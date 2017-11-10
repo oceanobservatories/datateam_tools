@@ -33,13 +33,19 @@ url = 'https://ooinet.oceanobservatories.org/api/m2m/12580/anno/'
 # url = 'https://ooinet-dev-01.oceanobservatories.org/api/m2m/12580/anno/'
 
 
-def check_dates(begin_DT,end_DT):
-    if begin_DT >= end_DT:
-        beginDT = int(nc.date2num(begin_DT,'seconds since 1970-01-01')*1000)
+def check_dates(beginDate,endDate):
+    begin_DT = datetime.strptime(beginDate,'%Y-%m-%dT%H:%M:%SZ')
+    beginDT = int(nc.date2num(begin_DT,'seconds since 1970-01-01')*1000)
+    try:
+        end_DT = datetime.strptime(endDate,'%Y-%m-%dT%H:%M:%SZ')
         endDT = int(nc.date2num(end_DT,'seconds since 1970-01-01')*1000)
+        if endDT >= beginDT:
+            return beginDT, endDT
+        else:
+            raise Exception('beginDate (%s) is after endDate (%s)' %(begin_DT,end_DT))
+    except ValueError:
+        endDT = ''
         return beginDT, endDT
-    else:
-        raise ValueError('beginDate (%s) is after endDate (%s)' %(begin_DT,end_DT))
 
 
 def check_exclusionFlag(exclusionFlag):
@@ -50,7 +56,7 @@ def check_exclusionFlag(exclusionFlag):
         exclusionFlag = 1
         return exclusionFlag
     else:
-        raise ValueError('Invalid exclusionFlag: %s' %exclusionFlag)
+        raise Exception('Invalid exclusionFlag: %s' %exclusionFlag)
 
 
 def check_qcFlag(qcFlag):
@@ -58,7 +64,7 @@ def check_qcFlag(qcFlag):
     if qcFlag in qcFlag_set:
         return qcFlag
     else:
-        raise ValueError('Invalid qcFlag: %s' %qcFlag)
+        raise Exception('Invalid qcFlag: %s' %qcFlag)
 
 
 with open(anno_csv, 'r') as infile:
@@ -78,10 +84,8 @@ with open(anno_csv, 'r') as infile:
             d['parameters'] = ast.literal_eval(row['parameters'])
 
         beginDate = row['beginDate']
-        begin_DT = datetime.strptime(beginDate,'%Y-%m-%dT%H:%M:%SZ')
         endDate = row['endDate']
-        end_DT = datetime.strptime(endDate,'%Y-%m-%dT%H:%M:%SZ')
-        beginDT, endDT = check_dates(begin_DT,end_DT)
+        beginDT, endDT = check_dates(beginDate,endDate)
         d['beginDT'] = beginDT
         d['endDT'] = endDT
 
@@ -99,4 +103,4 @@ with open(anno_csv, 'r') as infile:
         else:
             response = r.json()
             print response
-            raise ValueError('csv row %s: invalid annotation\n' %csv_row)
+            raise Exception('csv row %s: invalid annotation\n' %csv_row)
