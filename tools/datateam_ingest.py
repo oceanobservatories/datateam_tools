@@ -137,7 +137,7 @@ def build_ingest_dict(ingest_info):
     option_dict = {}
     keys = ingest_info.keys()
 
-    adict = {k: ingest_info[k] for k in ('parserDriver', 'fileMask', 'dataSource', 'deployment', 'refDes') if k in ingest_info}
+    adict = {k: ingest_info[k] for k in ('parserDriver', 'fileMask', 'dataSource', 'deployment', 'refDes','refDesFinal') if k in ingest_info}
     request_dict = dict(username=ingest_info['username'],
                         state=ingest_info['state'],
                         ingestRequestFileMasks=[adict],
@@ -245,7 +245,6 @@ username = 'michaesm'
 base_url = 'https://ooinet.oceanobservatories.org'
 api_key = 'username'
 api_token = 'token'
-priority = 1
 
 # ooinet-dev-01
 # base_url = 'https://ooinet-dev-01.oceanobservatories.org'
@@ -262,6 +261,7 @@ priority = 1
 # api_key = 'username'
 # api_token = 'token'
 
+priority = 1
 csv_path = '/local_path_to_ingestion-csvs/'
 
 
@@ -355,12 +355,25 @@ else:
         state_change = change_recurring_ingestion(api_key, api_token, recurring)
 
 print('\nProceeding with data ingestion\n')
+
+# add refDesFinal
+wcard_refdes = ['GA03FLMA-RIM01-02-CTDMOG000','GA03FLMB-RIM01-02-CTDMOG000',
+                'GI03FLMA-RIM01-02-CTDMOG000','GI03FLMB-RIM01-02-CTDMOG000',
+                'GP03FLMA-RIM01-02-CTDMOG000','GP03FLMB-RIM01-02-CTDMOG000',
+                'GS03FLMA-RIM01-02-CTDMOG000','GS03FLMB-RIM01-02-CTDMOG000']
+
+df['refDesFinal'] = ''
+
 for row in df.iterrows():
 
     if '#' in row[1]['parserDriver']:
         continue
     elif row[1]['parserDriver']:
         rd = row[1].refDes
+        if rd in wcard_refdes:
+            row[1].refDesFinal = 'false' # the CTDMO decoder will be invoked
+        else:
+            row[1].refDesFinal = 'true' # the CTDMO decoder will not be invoked
 
         ingest_dict = build_ingest_dict(row[1].to_dict())
         r = ingest_data(base_url, api_key, api_token, ingest_dict)
@@ -371,6 +384,8 @@ for row in df.iterrows():
         tdf['type'] = row[1]['type']
         tdf['deployment'] = row[1]['deployment']
         tdf['username'] = row[1]['username']
+        tdf['priority'] = row[1]['priority']
+        tdf['refDesFinal'] = row[1]['refDesFinal']
         tdf['fileMask'] = row[1]['fileMask']
         ingest_df = ingest_df.append(tdf)
     else:
