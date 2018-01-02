@@ -1,0 +1,3 @@
+dim_0,cell_number_diagnostics,date_time_string,distance_beam1,distance_beam2,distance_beam3,distance_beam4,driver_timestamp,internal_timestamp,noise_amplitude_beam1,noise_amplitude_beam2,noise_amplitude_beam3,noise_amplitude_beam4,pkt_format_id,pkt_version,preferred_timestamp,processing_magnitude_beam1,processing_magnitude_beam2,processing_magnitude_beam3,processing_magnitude_beam4,quality_flag,records_to_follow,stream_name
+0,1,2017/05/10 09:33:03,0,0,0,0,3722783895.26,3703397583.0,0,0,0,0,JSON_Data,1,internal_timestamp,563,2320,1303,0,ok,100,velpt_ab_dcl_diagnostics_metadata
+1,1,2017/05/10 21:34:04,0,0,0,0,3722783895.27,3703440844.0,0,0,0,0,JSON_Data,1,internal_timestamp,820,8464,1303,0,ok,100,velpt_ab_dcl_diagnostics_metadata
