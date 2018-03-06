@@ -18,14 +18,18 @@ import json
 import ast
 from datetime import datetime
 import netCDF4 as nc
+import pandas as pd
+import numpy as np
 
-anno_csv = '/Users/lgarzio/Documents/OOI/test/new_annotations.csv'
-source = 'lgarzio@marine.rutgers.edu'
+anno_csv = '/Users/mikesmith/Documents/notes_endurance_functionality.csv'
+source = 'michaesm@marine.rutgers.edu'
 
 # production
 username = 'username'
 token = 'token'
 url = 'https://ooinet.oceanobservatories.org/api/m2m/12580/anno/'
+
+session = requests.session()
 
 # ooinet-dev-01
 # username = 'username'
@@ -49,14 +53,11 @@ def check_dates(beginDate,endDate):
 
 
 def check_exclusionFlag(exclusionFlag):
-    if exclusionFlag == 'FALSE':
-        exclusionFlag = 0
-        return exclusionFlag
-    elif exclusionFlag == 'TRUE':
+    if exclusionFlag:
         exclusionFlag = 1
-        return exclusionFlag
     else:
-        raise Exception('Invalid exclusionFlag: %s' %exclusionFlag)
+        exclusionFlag = 0
+    return exclusionFlag
 
 
 def check_qcFlag(qcFlag):
@@ -67,40 +68,55 @@ def check_qcFlag(qcFlag):
         raise Exception('Invalid qcFlag: %s' %qcFlag)
 
 
-with open(anno_csv, 'r') as infile:
-    reader = csv.DictReader(infile)
-    for i, row in enumerate(reader):
-        csv_row = i+2
-        print 'Reading csv row %s' %csv_row
-        d = {'@class':'.AnnotationRecord'}
-        d['subsite'] = row['subsite']
-        d['node'] = row['node']
-        d['sensor'] = row['sensor']
-        d['stream'] = row['stream']
-        d['method'] = row['method']
-        if row['parameters'] == '':
-            d['parameters'] = []
-        else:
-            d['parameters'] = ast.literal_eval(row['parameters'])
+df = pd.read_csv(anno_csv)
+df = df.replace(np.nan, '', regex=True)
+df['beginDate'] = pd.to_datetime(df['beginDate'])
+df['beginDate'] = df['beginDate'].dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        beginDate = row['beginDate']
-        endDate = row['endDate']
-        beginDT, endDT = check_dates(beginDate,endDate)
-        d['beginDT'] = beginDT
-        d['endDT'] = endDT
+df['endDate'] = pd.to_datetime(df['endDate'])
+df['endDate'] = df['endDate'].dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+df['uploaded'] = ''
+df['status_code'] = ''
+df['message'] = ''
+df['annotation_id'] = ''
 
-        d['exclusionFlag'] = check_exclusionFlag(row['exclusionFlag'])
-        d['qcFlag'] = check_qcFlag(row['qcFlag'])
-        d['annotation'] = row['annotation']
-        d['source'] = source
-        jsond = json.dumps(d).replace('""','null')
+for index, row in df.iterrows():
+    print row
+    # print 'Reading csv row %s' #%csv_row
+    d = {'@class': '.AnnotationRecord'}
+    d['subsite'] = row['array']
+    d['node'] = row['node']
+    d['sensor'] = row['sensor']
+    d['stream'] = row['stream']
+    d['method'] = row['method']
+    if row['parameters'] == '':
+        d['parameters'] = []
+    else:
+        d['parameters'] = ast.literal_eval(row['parameters'])
 
-        r = requests.post(url, data=jsond, auth=(username, token))
-        if r.status_code == 201:
-            response = r.json()
-            print 'Message: %s' %response['message']
-            print 'id: %s\n' %response['id']
-        else:
-            response = r.json()
-            print response
-            raise Exception('csv row %s: invalid annotation\n' %csv_row)
+    beginDate = row['beginDate']
+    endDate = row['endDate']
+    beginDT, endDT = check_dates(beginDate,endDate)
+    d['beginDT'] = beginDT
+    d['endDT'] = endDT
+
+    d['exclusionFlag'] = check_exclusionFlag(row['exclusionFlag'])
+    d['qcFlag'] = check_qcFlag(row['qcFlag'])
+    d['annotation'] = row['annotation']
+    d['source'] = source
+    jsond = json.dumps(d).replace('""', 'null')
+
+    r = session.post(url, data=jsond, auth=(username, token))
+    response = r.json()
+    df.loc[row.name, 'status_code'] = r.status_code
+    df.loc[row.name, 'message'] = str(response['message'])
+    if r.status_code == 201:
+        df.loc[row.name, 'uploaded'] = True
+        df.loc[row.name, 'annotation_id'] = response['id']
+
+    else:
+        df.loc[row.name, 'annotation_id'] = ''
+        df.loc[row.name, 'uploaded'] = False
+
+
+df.to_csv(anno_csv.split('.')[0] + '_run.csv')
