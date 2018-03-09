@@ -46,4 +46,4 @@ for url in datasets:
     annotate_streams.main(json_file, refdes_dir, user)
     annotate_variable.main(json_file, refdes_dir, user)
     #m2m_get_annotations_refdes.main(username, token, refdes_dir, refdes)
-    m2m_get_annotations_subsite.main(username, token, subsite_dir, subsite)
+    m2m_get_annotations.main(username, token, subsite, subsite_dir)

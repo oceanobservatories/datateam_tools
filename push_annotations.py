@@ -2,9 +2,9 @@
 Created on Nov 10 2017
 
 @author: lgarzio
-@brief: This script is used to push new annotations from a csv to uFrame via the M2M API
+@brief: This script is used to push new annotations or update existing annotations from a csv to uFrame via the M2M API
 @usage:
-anno_csv: csv with annotations to push to uFrame with headers: subsite,node,sensor,stream,method,parameters,beginDate,
+anno_csv: csv with annotations to push to uFrame with headers: id,subsite,node,sensor,stream,method,parameters,beginDate,
             endDate,exclusionFlag,qcFlag,annotation
 source: email address to associate with annotation
 username: username to access the OOI API
@@ -13,7 +13,6 @@ url: annotation endpoint
 """
 
 import requests
-import csv
 import json
 import ast
 from datetime import datetime
@@ -21,8 +20,8 @@ import netCDF4 as nc
 import pandas as pd
 import numpy as np
 
-anno_csv = '/Users/mikesmith/Documents/notes_endurance_functionality.csv'
-source = 'michaesm@marine.rutgers.edu'
+anno_csv = '/Users/lgarzio/Documents/OOI/Annotations/new_annotations.csv'
+source = 'lgarzio@marine.rutgers.edu'
 
 # production
 username = 'username'
@@ -61,8 +60,8 @@ def check_exclusionFlag(exclusionFlag):
 
 
 def check_qcFlag(qcFlag):
-    qcFlag_set = set(['','not_operational','not_available','pending_ingest','not_evaluated','suspect','fail','pass'])
-    if qcFlag in qcFlag_set:
+    qcFlag_list = ['','not_operational','not_available','pending_ingest','not_evaluated','suspect','fail','pass']
+    if qcFlag in qcFlag_list:
         return qcFlag
     else:
         raise Exception('Invalid qcFlag: %s' %qcFlag)
@@ -75,16 +74,16 @@ df['beginDate'] = df['beginDate'].dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 df['endDate'] = pd.to_datetime(df['endDate'])
 df['endDate'] = df['endDate'].dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-df['uploaded'] = ''
+#df['uploaded'] = ''
 df['status_code'] = ''
 df['message'] = ''
-df['annotation_id'] = ''
+#df['annotation_id'] = ''
 
 for index, row in df.iterrows():
-    print row
+    # print row
     # print 'Reading csv row %s' #%csv_row
     d = {'@class': '.AnnotationRecord'}
-    d['subsite'] = row['array']
+    d['subsite'] = row['subsite']
     d['node'] = row['node']
     d['sensor'] = row['sensor']
     d['stream'] = row['stream']
@@ -104,19 +103,30 @@ for index, row in df.iterrows():
     d['qcFlag'] = check_qcFlag(row['qcFlag'])
     d['annotation'] = row['annotation']
     d['source'] = source
-    jsond = json.dumps(d).replace('""', 'null')
+    if row['id']: # if an id is specified in the csv, update the annotation
+        d['id'] = int(row['id'])
+        jsond = json.dumps(d).replace('""', 'null')
+        uurl = url + str(int(row['id']))
+        r = session.put(uurl, data=jsond, auth=(username, token))
+        response = r.json()
 
-    r = session.post(url, data=jsond, auth=(username, token))
-    response = r.json()
+    if not row['id']: # if no id is specified in the csv, creates a new annotation
+        jsond = json.dumps(d).replace('""', 'null')
+        r = session.post(url, data=jsond, auth=(username, token))
+        response = r.json()
+
     df.loc[row.name, 'status_code'] = r.status_code
     df.loc[row.name, 'message'] = str(response['message'])
-    if r.status_code == 201:
-        df.loc[row.name, 'uploaded'] = True
-        df.loc[row.name, 'annotation_id'] = response['id']
+    try:
+        df.loc[row.name, 'id'] = response['id']
+    except KeyError:
+        df.loc[row.name, 'id'] = ''
+    # if r.status_code == 201:
+    #     df.loc[row.name, 'uploaded'] = True
+    #     df.loc[row.name, 'id'] = response['id']
+    #
+    # else:
+    #     df.loc[row.name, 'id'] = ''
+    #     df.loc[row.name, 'uploaded'] = False
 
-    else:
-        df.loc[row.name, 'annotation_id'] = ''
-        df.loc[row.name, 'uploaded'] = False
-
-
-df.to_csv(anno_csv.split('.')[0] + '_run.csv')
+df.to_csv(anno_csv.split('.')[0] + '_run.csv', index=False)
