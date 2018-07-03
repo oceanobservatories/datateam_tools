@@ -4,8 +4,8 @@ Created on Nov 10 2017
 @author: lgarzio
 @brief: This script is used to push new annotations or update existing annotations from a csv to uFrame via the M2M API
 @usage:
-anno_csv: csv with annotations to push to uFrame with headers: id,subsite,node,sensor,stream,method,parameters,beginDate,
-            endDate,exclusionFlag,qcFlag,annotation
+anno_csv: csv with annotations to push to uFrame with headers: id,subsite(r),node,sensor,stream,method,parameters,
+            beginDate(r),endDate,beginDT,endDT,exclusionFlag(r),qcFlag,source,annotation(r): (r) = required
 source: email address to associate with annotation
 username: username to access the OOI API
 token: password to access the OOI API
