@@ -75,7 +75,7 @@ def write_all_annotations(username, token, f, session):
             try:
                 endDate = datetime.utcfromtimestamp(float(info['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
             except TypeError: # if end date is blank
-                endDate = []
+                endDate = None
 
             writer = csv.writer(f)
             newline = [info['id'],info['subsite'],info['node'],info['sensor'],info['stream'],info['method'],
@@ -109,7 +109,7 @@ def write_refdes_annotations(username, token, refdes_list, outfile, session):
                     try:
                         endDate = datetime.utcfromtimestamp(float(d['endDT'])/1000).strftime('%Y-%m-%dT%H:%M:%S')
                     except TypeError: # if end date is blank
-                        endDate = []
+                        endDate = None
                     writer = csv.writer(outfile)
                     writer.writerow([d['id'],d['subsite'],d['node'],d['sensor'],d['stream'],d['method'],d['parameters'],
                                      beginDate,endDate,d['beginDT'],d['endDT'],d['exclusionFlag'],d['source'],
@@ -159,8 +159,8 @@ def main(username, token, refdes, saveDir):
 
 
 if __name__ == '__main__':
-    username = 'username'
-    token = 'token'
+    username = ''
+    token = ''
     refdes = '' # 'GS01SUMO, GS01SUMO-SBD11, GS01SUMO-SBD11-06-METBKA000'
     saveDir = '/Users/lgarzio/Documents/OOI/Annotations'
     main(username, token, refdes, saveDir)
