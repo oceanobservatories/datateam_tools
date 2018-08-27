@@ -102,7 +102,12 @@ for index, row in df.iterrows():
     d['exclusionFlag'] = check_exclusionFlag(row['exclusionFlag'])
     d['qcFlag'] = check_qcFlag(row['qcFlag'])
     d['annotation'] = row['annotation']
-    d['source'] = source
+
+    if row['source']: # if source is specified in the csv, use that source
+        d['source'] = row['source']
+    else: # if no source is specified, use the source defined above
+        d['source'] = source
+
     if row['id']: # if an id is specified in the csv, update the annotation
         d['id'] = int(row['id'])
         jsond = json.dumps(d).replace('""', 'null')
